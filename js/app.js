@@ -5,6 +5,7 @@ import { VisitedGrid } from './grid.js';
 import { CanvasOverlay, PinsLayer, placeholderLayer } from './layers.js';
 import { getMapImage, setMapImage, clearMapImage, imageSize } from './mapimage.js';
 import { Footprints } from './footprints.js';
+import { initSync, connect, disconnect, syncNow, syncStatus, onSyncStatus, TOKEN_URL } from './sync.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -66,6 +67,9 @@ async function boot() {
   bindUI();
   bindPaint();
   on((type) => { if (type === 'reset') loadGrid(); if (type !== 'note') refresh(); });
+  onSyncStatus(renderSync);
+  renderSync();
+  initSync((other) => { grid.union(other); return grid.serialize(); });
   refresh();
   setTool('explore');
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || new URLSearchParams(location.search).has('sw'))) {
@@ -576,11 +580,32 @@ function bindUI() {
     if (!confirm('Importar sustituye el progreso de este dispositivo por el del archivo. ¿Continuar?')) return;
     try { importJSON(await f.text()); selected = null; toast('Progreso importado'); } catch (err) { toast(err.message); }
   });
+  $('#syncTokenLink').href = TOKEN_URL;
+  $('#syncConnect').addEventListener('click', async () => {
+    const token = $('#syncToken').value.trim();
+    if (!token) return toast('Pega primero el token de GitHub');
+    try { await connect(token); $('#syncToken').value = ''; toast('Sincronización activada'); } catch (err) { toast(err.message); }
+  });
+  $('#syncNowBtn').addEventListener('click', () => syncNow());
+  $('#syncDisconnect').addEventListener('click', () => { if (confirm('¿Dejar de sincronizar este dispositivo? El progreso se queda aquí y en GitHub.')) disconnect(); });
+
   $('#resetBtn').addEventListener('click', () => {
-    if (confirm('¿Borrar TODO tu progreso en este dispositivo (conseguidos, edificios, zonas y marcadores propios)? No se puede deshacer.')) { selected = null; resetAll(); toast('Progreso borrado'); }
+    if (confirm('¿Borrar TODO tu progreso en este dispositivo (conseguidos, edificios, zonas y marcadores propios)? No se puede deshacer' + (syncStatus().phase !== 'off' ? ', y con la sincronización activada se borra también en tus otros dispositivos.' : '.'))) { selected = null; resetAll(); toast('Progreso borrado'); }
   });
 
   addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDetail(); document.body.classList.remove('panel-open'); } });
+}
+
+function renderSync() {
+  const s = syncStatus(), on = s.phase !== 'off';
+  $('#syncOffBox').hidden = on; $('#syncOnBox').hidden = !on;
+  const when = s.at ? new Date(s.at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+  $('#syncInfo').textContent = !on
+    ? 'Para que el móvil y el ordenador compartan el progreso sin exportar ni importar: crea un token de GitHub con permiso «gist» y pégalo aquí, una vez en cada dispositivo. El progreso se guarda en un gist privado de tu cuenta; el token no sale de este dispositivo.'
+    : s.phase === 'syncing' ? 'Sincronizando…'
+      : s.phase === 'error' ? `No se pudo sincronizar: ${s.msg}`
+        : `Sincronizado con tu GitHub${when ? ' a las ' + when : ''}. ${s.msg}`;
+  if (s.phase === 'idle' && s.msg) toast(s.msg);
 }
 
 function showTab(name) {

@@ -72,11 +72,24 @@
 
       <h3>Tu progreso</h3>
       <p class="hint" id="statsInfo"></p>
-      <p class="hint">El progreso se guarda en este dispositivo. Para pasarlo del móvil al ordenador (o al revés), exporta aquí e importa allí.</p>
       <div class="row">
         <button class="btn" id="exportBtn">Exportar</button>
         <label class="btn">Importar…<input type="file" id="importFile" accept="application/json,.json" hidden></label>
         <button class="btn danger" id="resetBtn">Borrar todo</button>
+      </div>
+
+      <h3>Sincronizar móvil y ordenador</h3>
+      <p class="hint" id="syncInfo"></p>
+      <div id="syncOffBox">
+        <input type="password" id="syncToken" placeholder="Token de GitHub (permiso «gist»)" autocomplete="off">
+        <div class="row">
+          <button class="btn primary" id="syncConnect">Conectar</button>
+          <a class="btn ghost" id="syncTokenLink" target="_blank" rel="noopener">Crear el token…</a>
+        </div>
+      </div>
+      <div class="row" id="syncOnBox" hidden>
+        <button class="btn" id="syncNowBtn">Sincronizar ahora</button>
+        <button class="btn ghost" id="syncDisconnect">Desconectar</button>
       </div>
     </div>
   </aside>

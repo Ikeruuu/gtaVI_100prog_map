@@ -62,21 +62,38 @@ export class VisitedGrid {
     for (let i = 0; i < out.length; i += 8192) s += String.fromCharCode.apply(null, out.slice(i, i + 8192));
     return `${this.cols}x${this.rows}:${btoa(s)}`;
   }
-  /** Devuelve false si los datos no encajan con esta rejilla (otra proporción de mapa). */
-  load(str) {
-    this.clear();
-    if (!str) return true;
+  /** Bits de una rejilla serializada, o null si no encaja con esta (otra proporción de mapa). */
+  _decode(str) {
     const sep = str.indexOf(':');
-    if (str.slice(0, sep) !== `${this.cols}x${this.rows}`) return false;
-    const raw = atob(str.slice(sep + 1));
+    if (str.slice(0, sep) !== `${this.cols}x${this.rows}`) return null;
+    const raw = atob(str.slice(sep + 1)), bits = new Uint8Array(this.bits.length);
     let o = 0;
-    for (let i = 0; i < raw.length && o < this.bits.length; i++) {
+    for (let i = 0; i < raw.length && o < bits.length; i++) {
       const b = raw.charCodeAt(i);
-      if (b === 0) o += raw.charCodeAt(++i); else this.bits[o++] = b;
+      if (b === 0) o += raw.charCodeAt(++i); else bits[o++] = b;
     }
+    return bits;
+  }
+  _repaint() {
+    this.ctx.clearRect(0, 0, this.cols, this.rows);
     for (let i = 0; i < this.cols * this.rows; i++) {
       if ((this.bits[i >> 3] >> (i & 7)) & 1) this.ctx.fillRect(i % this.cols, (i / this.cols) | 0, 1, 1);
     }
+  }
+  /** Devuelve false si los datos no encajan con esta rejilla. */
+  load(str) {
+    this.clear();
+    if (!str) return true;
+    const bits = this._decode(str);
+    if (!bits) return false;
+    this.bits.set(bits); this._repaint();
     return true;
+  }
+  /** Suma a esta rejilla lo pintado en otra serializada (para combinar dos dispositivos). */
+  union(str) {
+    const bits = str && this._decode(str);
+    if (!bits) return;
+    for (let i = 0; i < bits.length; i++) this.bits[i] |= bits[i];
+    this._repaint();
   }
 }

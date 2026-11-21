@@ -64,6 +64,7 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 | `data/buildings.json` | 7251 siluetas detectadas en el póster (generado; polígonos en px con deltas). Solo se usa si sus dimensiones coinciden con `data/map.json` y no hay imagen local. |
 | `tools/detect-buildings.mjs` | El detector: píxeles azulados → quitar líneas de 1 px → componentes conexas con límite de tono → contorno → simplificar. Umbrales arriba del archivo. |
 | `js/mapimage.js` | Imagen de mapa cargada por el usuario, guardada en IndexedDB. |
+| `js/sync.js` | Sincronización entre dispositivos por un gist privado del usuario (ver abajo). |
 | `sw.js`, `manifest.webmanifest` | PWA. El SW solo se registra en https (o con `?sw` en local). Red primero; teselas caché primero. |
 | `data/map.json` | Mapa base: `type` = `none` (rejilla), `image` o `tiles`; `width`/`height` en px de la imagen completa. |
 | `data/categories.json` | Grupos y categorías (`icon`, `color`, `tracked:false` = no cuenta para el progreso). |
@@ -90,6 +91,15 @@ menos de 10 px de pantalla de un edificio lo coge. Con «Explorar», tocar un ed
 Colores: verde = visto, amarillo = saqueado, rosa = volver, gris = cerrado. La zona pintada va en violeta.
 El zoom es entero (`zoomSnap: 1`): con medios niveles se ven rayas entre teselas. En «Edificio», «Zona» y
 «Marcador» el doble toque no hace zoom, para poder tocar rápido.
+
+**Sincronización:** sin servidor. El usuario pega en «Datos» un token de GitHub con permiso `gist` (una vez
+por dispositivo; se guarda en `localStorage` `leonida100.sync` y nunca se exporta). El progreso va al archivo
+`leonida100-sync.json` de un gist privado suyo. Se sincroniza `found`, `notes`, `buildings`, `custom`,
+`checklist` y la zona pintada; `prefs` y `hidden` son de cada dispositivo. `state.mod` (fecha del último cambio
+de progreso) decide: si solo cambió el otro se baja, si solo cambió este se sube, si cambiaron los dos se
+combinan conservando todo (lo borrado en uno solo puede reaparecer). Sube 3 s después de cada cambio y baja
+al abrir, al volver a la pestaña y cada 90 s. **Probado solo contra un GitHub simulado** (Playwright
+interceptando `api.github.com`): falta que el usuario lo confirme con su cuenta real.
 
 **Herramientas:** Explorar · Edificio · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar ·
 Marcador (marcador propio).
@@ -140,12 +150,19 @@ Marcador (marcador propio).
    usuario en «Vista 2D» y colocadas sobre el mapa con dos puntos de referencia (habría que programar capas de
    imagen georreferenciadas; hoy «Cargar imagen del mapa» sustituye el mapa entero); (b) un mapa de la comunidad
    a más resolución, si aparece uno reutilizable.
-2. **Datos de marcadores.** Copiar entera la base de datos de otra web de mapas (p. ej. MapGenie) choca con sus
-   condiciones, sobre todo si luego se publica; preferir fuentes reutilizables (wiki con licencia CC BY-SA,
-   citando) y lo que añada el propio usuario. Las guías suelen dar la posición como imagen o vídeo, no como
-   coordenadas: hará falta un importador en `tools/` con calibración por puntos de control.
-3. **Sincronización móvil ↔ ordenador.** Ahora es exportar/importar un archivo. Sincronizar de verdad necesita
-   un backend (decisión del usuario).
-4. **Publicación.** GitHub Pages desde la raíz sirve tal cual; lo activa el usuario en los ajustes del repo.
+2. **Datos de marcadores.** El usuario quiere las capas de un mapa interactivo «con todo» que pueda poner y
+   quitar, y puso de ejemplo el de **IGN**. Estado a 21-nov-2026:
+   - `update_environment` para añadir `www.ign.com` fue **rechazado por el servicio de entornos** (no por el
+     usuario). Sin ese host no se puede leer IGN desde la sesión. El usuario puede añadir el dominio a mano en
+     los ajustes del entorno, o compartir una carpeta de su ordenador.
+   - Las guías de PowerPyx están a medias (flamencos: 8 de 125) y dan la posición en texto y capturas, no en
+     coordenadas: no sirven para importar en automático.
+   - El repo es **público** y GitHub Pages también: la base de datos de otra web no debe ir en el repo. Plan:
+     capa privada que se importa en cada dispositivo desde un archivo (o viaja por la sincronización), con un
+     importador en `tools/` que calibre las coordenadas de la fuente contra el póster con puntos de control.
+     Los interruptores por categoría de «Capas» ya sirven para poner y quitar.
+3. **Sincronización:** hecha (ver arriba); pendiente de que el usuario la pruebe con su cuenta.
+4. **Publicación.** El usuario ha decidido GitHub Pages (a 21-nov-2026 aún sin activar). Lo activa él en
+   Settings → Pages; puede desplegar desde la rama de trabajo o desde `main` tras fusionar.
 5. Versión pública para su web de noticias: el mapa es de Rockstar (uso de fan, sin ánimo de lucro) y la lista
    del 100% viene de una guía de terceros; revisar ambas cosas antes de publicarlo con publicidad.
