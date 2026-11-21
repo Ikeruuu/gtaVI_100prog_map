@@ -1,0 +1,38 @@
+{
+  "_doc": "Taxonomía genérica (no son los nombres oficiales del juego). Al importar datos reales se añaden/renombran categorías aquí. tracked=false => no cuenta para el progreso.",
+  "groups": [
+    { "id": "collect", "name": "Coleccionables" },
+    { "id": "vehicles", "name": "Vehículos" },
+    { "id": "weapons", "name": "Armas y equipo" },
+    { "id": "loot", "name": "Robos y botín" },
+    { "id": "events", "name": "Eventos y secretos" },
+    { "id": "activities", "name": "Actividades" },
+    { "id": "places", "name": "Lugares" }
+  ],
+  "categories": [
+    { "id": "collectible", "group": "collect", "name": "Coleccionable", "icon": "⭐", "color": "#ffd23f" },
+
+    { "id": "vehicle", "group": "vehicles", "name": "Vehículo especial", "icon": "🚗", "color": "#4cc9f0" },
+
+    { "id": "weapon", "group": "weapons", "name": "Arma", "icon": "🔫", "color": "#ff6b6b" },
+    { "id": "pickup", "group": "weapons", "name": "Chaleco / salud", "icon": "🛡️", "color": "#9bb1ff" },
+
+    { "id": "store", "group": "loot", "name": "Tienda robable", "icon": "🏪", "color": "#ff9f1c" },
+    { "id": "lootitem", "group": "loot", "name": "Botín / objeto robable", "icon": "💰", "color": "#7ae582" },
+    { "id": "safe", "group": "loot", "name": "Caja fuerte", "icon": "🔐", "color": "#c8b6ff" },
+    { "id": "interior", "group": "loot", "name": "Interior accesible", "icon": "🚪", "color": "#e0aaff", "tracked": false },
+
+    { "id": "random", "group": "events", "name": "Evento aleatorio", "icon": "❗", "color": "#ff4fa3" },
+    { "id": "secret", "group": "events", "name": "Secreto / easter egg", "icon": "👽", "color": "#80ffdb" },
+    { "id": "stranger", "group": "events", "name": "Encuentro / desconocido", "icon": "❓", "color": "#b388eb" },
+
+    { "id": "mission", "group": "activities", "name": "Misión secundaria", "icon": "📋", "color": "#f4a261" },
+    { "id": "race", "group": "activities", "name": "Carrera", "icon": "🏁", "color": "#e9ecef" },
+    { "id": "stunt", "group": "activities", "name": "Salto acrobático", "icon": "🤸", "color": "#f72585" },
+    { "id": "activity", "group": "activities", "name": "Actividad / minijuego", "icon": "🎯", "color": "#90e0ef" },
+
+    { "id": "shop", "group": "places", "name": "Tienda / servicio", "icon": "🛒", "color": "#adb5bd", "tracked": false },
+    { "id": "property", "group": "places", "name": "Propiedad / piso franco", "icon": "🏠", "color": "#52b788", "tracked": false },
+    { "id": "poi", "group": "places", "name": "Punto de interés", "icon": "📍", "color": "#ced4da", "tracked": false }
+  ]
+}

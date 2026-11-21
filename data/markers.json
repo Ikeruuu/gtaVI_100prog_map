@@ -1,0 +1,6 @@
+{
+  "_doc": "Marcadores del juego. Cada uno: { id, cat, x, y, title, desc? }. x/y en unidades de mapa (ancho del mapa = 10000, origen arriba-izquierda). Vacío hasta importar datos verificados: NO inventar posiciones.",
+  "source": "",
+  "updated": "",
+  "markers": []
+}

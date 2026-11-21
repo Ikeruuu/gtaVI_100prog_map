@@ -1,0 +1,8 @@
+{
+  "_doc": "Mapa base. type: 'none' (rejilla de marcador de posición), 'image' (una sola imagen) o 'tiles' (pirámide generada con `npm run tiles`). width/height = píxeles de la imagen de referencia a resolución completa.",
+  "type": "none",
+  "url": "",
+  "width": 8192,
+  "height": 8192,
+  "attribution": ""
+}

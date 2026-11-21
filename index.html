@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Leonida 100% · Mapa de progreso</title>
+  <meta name="description" content="Mapa interactivo para llevar el 100% de GTA VI: coleccionables, eventos, edificios y zonas visitadas.">
+  <meta name="theme-color" content="#120e1d">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <aside id="panel" aria-label="Capas y progreso">
+    <header class="brand">
+      <div class="logo">LEONIDA <span>100%</span></div>
+      <button id="panelClose" class="icon-btn mobile-only" aria-label="Cerrar panel">✕</button>
+    </header>
+
+    <section class="progress" aria-label="Progreso total">
+      <div class="progress-line"><span id="progText"></span><b id="progPct"></b></div>
+      <div class="bar"><i id="progBar"></i></div>
+    </section>
+
+    <div class="seg" id="modeSeg" role="group" aria-label="Modo de mapa">
+      <button data-mode="empty">Mapa vacío</button>
+      <button data-mode="all">Con marcadores</button>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="layers" class="on">Capas</button>
+      <button data-tab="missed">Olvidos <span id="missedBadge" class="badge" hidden></span></button>
+      <button data-tab="data">Datos</button>
+    </nav>
+
+    <div class="tab" id="tab-layers">
+      <input id="search" type="search" placeholder="Buscar marcador…" autocomplete="off">
+      <div id="searchResults" class="list"></div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tgVisited"> Zonas visitadas</label>
+        <label><input type="checkbox" id="tgBuildings"> Edificios marcados</label>
+        <label><input type="checkbox" id="tgHideFound"> Ocultar conseguidos</label>
+      </div>
+      <div id="catList"></div>
+    </div>
+
+    <div class="tab" id="tab-missed" hidden>
+      <p class="hint">Cosas sin conseguir que están dentro de una zona que pintaste como visitada o junto a un edificio que marcaste como visto. Es decir: sitios donde ya estuviste y te dejaste algo.</p>
+      <div id="missedList" class="list"></div>
+    </div>
+
+    <div class="tab" id="tab-data" hidden>
+      <h3>Mapa base</h3>
+      <p class="hint" id="baseInfo"></p>
+      <div class="row">
+        <label class="btn">Cargar imagen del mapa…<input type="file" id="mapFile" accept="image/*" hidden></label>
+        <button class="btn ghost" id="mapClear" hidden>Quitar imagen</button>
+      </div>
+
+      <h3>Marcadores del juego</h3>
+      <p class="hint" id="dataInfo"></p>
+
+      <h3>Tu progreso</h3>
+      <p class="hint" id="statsInfo"></p>
+      <p class="hint">El progreso se guarda en este dispositivo. Para pasarlo del móvil al ordenador (o al revés), exporta aquí e importa allí.</p>
+      <div class="row">
+        <button class="btn" id="exportBtn">Exportar</button>
+        <label class="btn">Importar…<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+        <button class="btn danger" id="resetBtn">Borrar todo</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="stage">
+    <div id="map"></div>
+    <button id="panelOpen" class="fab mobile-only" aria-label="Abrir panel">☰</button>
+    <div id="notice" hidden></div>
+
+    <div id="brushbar" hidden>
+      <span>Pincel</span>
+      <button data-brush="10">S</button>
+      <button data-brush="22">M</button>
+      <button data-brush="44">L</button>
+      <button id="undoBtn" title="Deshacer último trazo">↩ Deshacer</button>
+    </div>
+
+    <div id="toolbar" role="toolbar" aria-label="Herramientas">
+      <button data-tool="explore" title="Explorar y abrir marcadores"><i>👆</i><span>Explorar</span></button>
+      <button data-tool="building" title="Marcar un edificio como visitado"><i>🏠</i><span>Edificio</span></button>
+      <button data-tool="paint" title="Pintar zona visitada"><i>🖌️</i><span>Zona</span></button>
+      <button data-tool="erase" title="Borrar zona visitada"><i>🧽</i><span>Borrar</span></button>
+      <button data-tool="add" title="Añadir un marcador propio"><i>➕</i><span>Marcador</span></button>
+    </div>
+
+    <section id="detail" hidden></section>
+    <div id="brushCursor" hidden></div>
+    <div id="toast" hidden></div>
+  </main>
+</div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

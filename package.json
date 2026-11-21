@@ -1,0 +1,15 @@
+{
+  "name": "leonida-100",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mapa interactivo de progreso 100% para GTA VI (web + PWA)",
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/serve.mjs",
+    "tiles": "node tools/make-tiles.mjs"
+  },
+  "devDependencies": {
+    "leaflet": "1.9.4",
+    "sharp": "^0.33.5"
+  }
+}
