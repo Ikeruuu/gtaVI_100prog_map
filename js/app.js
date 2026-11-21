@@ -178,6 +178,7 @@ function renderPins() {
   if (selected?.kind === 'new') items.push({ id: '__new', kind: 'custom', ll: space.toLL(selected.x, selected.y), color: '#fff', icon: '➕' });
   pins.selectedId = selected?.kind === 'new' ? '__new' : selected?.id ?? null;
   pins.setItems(items);
+  pins.setOutlines(fp, p.outlines || tool === 'building');
   if (p.showVisited) visitedOverlay.addTo(map); else visitedOverlay.remove();
 }
 
@@ -264,6 +265,7 @@ function renderControls() {
   const p = state.prefs;
   $$('#modeSeg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === p.mode));
   $('#tgVisited').checked = p.showVisited; $('#tgBuildings').checked = p.showBuildings; $('#tgHideFound').checked = p.hideFound;
+  $('#tgOutlines').checked = p.outlines; $('#tgOutlines').closest('label').hidden = !fp;
 }
 
 /* ---------------- Ficha de detalle ---------------- */
@@ -426,7 +428,7 @@ function setTool(t) {
   // Tocar rápido varios edificios seguidos no debe contar como doble toque (zoom).
   map.doubleClickZoom[t === 'explore' ? 'enable' : 'disable']();
   if (t !== 'building') pins.setHover(null);
-  pins.setOutlines(fp, t === 'building');
+  pins.setOutlines(fp, state.prefs.outlines || t === 'building');
   $('#brushbar').hidden = !painting;
   $('#stampbar').hidden = t !== 'building';
   $$('#stampbar [data-stamp]').forEach((b) => b.classList.toggle('on', b.dataset.stamp === stamp));
@@ -517,6 +519,7 @@ function bindUI() {
   $('#tgVisited').addEventListener('change', (e) => { state.prefs.showVisited = e.target.checked; change('prefs'); });
   $('#tgBuildings').addEventListener('change', (e) => { state.prefs.showBuildings = e.target.checked; change('prefs'); });
   $('#tgHideFound').addEventListener('change', (e) => { state.prefs.hideFound = e.target.checked; change('prefs'); });
+  $('#tgOutlines').addEventListener('change', (e) => { state.prefs.outlines = e.target.checked; change('prefs'); });
 
   $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
 

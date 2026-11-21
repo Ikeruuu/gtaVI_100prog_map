@@ -12,7 +12,7 @@ const blank = () => ({
   hidden: [],     // ids de categoría ocultas
   checklist: {},  // id de requisito del 100% -> cantidad que llevas
   mod: 0,         // cuándo cambió el progreso por última vez (ms); lo usa la sincronización
-  prefs: { mode: 'all', hideFound: false, showVisited: true, showBuildings: true },
+  prefs: { mode: 'all', hideFound: false, showVisited: true, showBuildings: true, outlines: true },
 });
 
 function merge(d) {

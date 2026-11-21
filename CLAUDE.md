@@ -28,6 +28,10 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 - El mapa del juego dibuja **cada edificio** (vista 3D con volúmenes y «Vista 2D» con R3), así que una captura
   del mapa del juego a máximo zoom es justo el mapa base que hace falta.
 - Estilo claro (agua azul, edificios azul pálido, calles blancas): los colores deben contrastar sobre fondo claro.
+- Le gusta más ese mapa del juego que el póster: «más limpio y plano de colores, no con relieve», y se queja
+  de que el póster pierde calidad al hacer zoom. El mapa detallado de MapGenie sería la solución; el
+  21-nov-2026 dijo que es de un conocido suyo y que le iba a pedir permiso. **Si lo consigue:** capa de
+  teselas de MapGenie como mapa base, calibrar sus coordenadas contra las nuestras y cargar sus marcadores.
 - Topónimos vistos: Cayo Lento, Bahía de Gambit, Lago Cottonmouth.
 
 ## Reglas
@@ -106,8 +110,9 @@ interceptando `api.github.com`): falta que el usuario lo confirme con su cuenta 
 **Forma de las siluetas** (el usuario se quejó de «muchas formas que no tienen nada que ver»): cada mancha se
 convierte en un rectángulo girado si lo llena lo bastante (70 %; 85 % si es grande); las manchas pequeñas toman
 el giro del edificio grande más cercano; el resto (curvas, diagonales) conserva su contorno alisado. Con
-«Edificio» activo se dibuja además el contorno de todos los edificios a la vista, porque el póster se ve
-borroso de cerca. Para revisar el detector: dibujar los polígonos sobre recortes ampliados del póster y mirarlos.
+Además, desde el zoom nativo hacia dentro se redibujan en limpio todos los edificios a la vista (color plano
+y borde nítido; interruptor «Edificios del mapa en limpio», `prefs.outlines`), porque el póster es una imagen
+y de cerca se ve borrosa. Más lejos no se dibujan: con miles a la vista el redibujado pasa de 7 a 50 ms. Para revisar el detector: dibujar los polígonos sobre recortes ampliados del póster y mirarlos.
 
 **Herramientas:** Explorar · Edificio · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar ·
 Marcador (marcador propio).

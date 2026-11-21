@@ -81,7 +81,8 @@ export const PinsLayer = L.Layer.extend({
       g.closePath();
     };
 
-    // 0) Contorno de todos los edificios a la vista: el póster se ve borroso de cerca y así se sabe qué es cada uno.
+    // 0) Todos los edificios a la vista, redibujados en limpio (color plano y borde nítido, como el mapa del
+    //    juego): el póster es una imagen y de cerca se ve borrosa; esto no pierde calidad con el zoom.
     g.lineJoin = 'round';
     if (this.outlines && this.fp && s >= 0.55) {
       const fp = this.fp, b = fp.boxes, x0 = -o.x / s, y0 = -o.y / s, x1 = (size.x - o.x) / s, y1 = (size.y - o.y) / s;
@@ -93,8 +94,8 @@ export const PinsLayer = L.Layer.extend({
         for (let j = 2; j < p.length; j += 2) g.lineTo(o.x + p[j] * s, o.y + p[j + 1] * s);
         g.closePath();
       }
-      g.fillStyle = 'rgba(255,255,255,.14)'; g.fill();
-      g.strokeStyle = 'rgba(20,14,40,.55)'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = '#dbe6f4'; g.fill();
+      g.strokeStyle = '#7f93b0'; g.lineWidth = 1; g.stroke();
     }
 
     // 1) Edificios coloreados, por debajo de los marcadores.
