@@ -4,19 +4,21 @@ import { makeSpace } from './geo.js';
 import { VisitedGrid } from './grid.js';
 import { CanvasOverlay, PinsLayer, placeholderLayer } from './layers.js';
 import { getMapImage, setMapImage, clearMapImage, imageSize } from './mapimage.js';
+import { Footprints } from './footprints.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const getJSON = (u) => fetch(u, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(`${u}: ${r.status}`); return r.json(); });
 
-// Marcas de edificio: igual que tachar con una X sobre una foto del mapa, pero con estados.
+// Estados de un edificio: al tocarlo se rellena su silueta con el color del estado elegido.
 const BUILDING_STATUS = {
-  clear: { icon: '✕', label: 'Visto, nada', color: '#14101f', shape: 'x' },
-  looted: { icon: '💰', label: 'Saqueado', color: '#0b9e6a', shape: 'x' },
-  todo: { icon: '🔁', label: 'Volver', color: '#ff7a00', shape: 'ring' },
-  locked: { icon: '🔒', label: 'Cerrado', color: '#6c757d', shape: 'dash' },
+  clear: { label: 'Visto', color: '#2ee6a6' },
+  looted: { label: 'Saqueado', color: '#ffd23f' },
+  todo: { label: 'Volver', color: '#ff5d8f' },
+  locked: { label: 'Cerrado', color: '#56607a' },
 };
+const dot = (color) => `<i class="dot" style="background:${color}"></i>`;
 const VISITED_STATUSES = new Set(['clear', 'looted']);
 const OVERZOOM = 3;         // niveles de zoom por encima de la resolución real, para poder tocar edificios pequeños
 const money = (n) => '$' + Number(n).toLocaleString('es-ES');
@@ -29,7 +31,9 @@ let checklist = { sections: [] }, reqs = [];
 let tool = 'explore', brush = 22, selected = null;
 let stamp = 'clear';        // estado con el que se marcan los edificios al tocar
 let lastCat = 'lootitem';   // categoría propuesta al añadir un marcador propio (la última usada)
-const placed = [];          // edificios marcados en esta sesión, para «Deshacer»
+let fp = null;              // siluetas de edificios (Footprints), o null si el mapa base no es el de las siluetas
+const fpCache = new WeakMap();   // marca de edificio -> índice de su silueta (-1 si no tiene)
+const buildingUndo = [];    // copias de state.buildings antes de cada cambio hecho con «Edificio»
 const undoStack = [];
 
 /* ---------------- Arranque ---------------- */
@@ -50,6 +54,14 @@ async function boot() {
     }
   } catch (e) { console.warn('Imagen local no disponible', e); }
 
+  // Las siluetas solo valen para la imagen de la que se sacaron.
+  if (!base.local && base.type !== 'none') {
+    try {
+      const b = await getJSON('data/buildings.json');
+      if (b.width === base.width && b.height === base.height) fp = new Footprints(b);
+    } catch (e) { console.warn('Sin siluetas de edificios', e); }
+  }
+
   setupMap();
   bindUI();
   bindPaint();
@@ -64,7 +76,7 @@ async function boot() {
 function setupMap() {
   space = makeSpace(base.width, base.height);
   map = L.map('map', {
-    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + OVERZOOM, zoomSnap: 0.5, zoomDelta: 0.5,
+    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + OVERZOOM, zoomSnap: 1, zoomDelta: 1,   // zoom entero: con medios niveles se ven rayas entre teselas
     wheelPxPerZoomLevel: 90, zoomControl: false, maxBoundsViscosity: 0.9, attributionControl: !!base.attribution,
   });
   L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -81,12 +93,14 @@ function setupMap() {
   grid = new VisitedGrid(space.W, space.H);
   loadGrid();
   visitedOverlay = new CanvasOverlay(grid.canvas, space.bounds, { className: 'visited-layer', opacity: 0.42, interactive: false });
-  pins = new PinsLayer().addTo(map);
+  pins = new PinsLayer(space).addTo(map);
 
   map.setMaxBounds(space.bounds.pad(0.3));
   map.fitBounds(space.bounds);
   map.on('click', onMapClick);
-  window.leonida = { map, space };   // para depurar y para las pruebas con Playwright
+  map.on('mousemove', onMapHover);
+  map.on('mouseout', () => pins.setHover(null));
+  window.leonida = { map, space, fp };   // para depurar y para las pruebas con Playwright
 }
 
 function loadGrid() {
@@ -95,6 +109,16 @@ function loadGrid() {
 }
 
 /* ---------------- Datos derivados ---------------- */
+/** Índice de la silueta que corresponde a una marca de edificio (-1 si está en un sitio sin silueta). */
+function footprintOf(b) {
+  if (!fp) return -1;
+  let i = fpCache.get(b);
+  if (i === undefined) fpCache.set(b, (i = fp.find(b.x, b.y)));
+  return i;
+}
+/** Tolerancia al tocar: unos 10 px de pantalla, para acertar con edificios pequeños. */
+const tapTolerance = () => 10 * space.unitsPerPx(map.getZoom());
+
 function allMarkers() { return dataMarkers.concat(state.custom); }
 const isTracked = (m) => catById.get(m.cat)?.tracked !== false;
 
@@ -143,7 +167,8 @@ function renderPins() {
   if (p.showBuildings) {
     for (const b of state.buildings) {
       const s = BUILDING_STATUS[b.status] || BUILDING_STATUS.clear;
-      items.push({ id: b.id, kind: 'building', ll: space.toLL(b.x, b.y), color: s.color, shape: s.shape });
+      const f = footprintOf(b);
+      items.push({ id: b.id, kind: 'building', ll: space.toLL(b.x, b.y), color: s.color, poly: f >= 0 ? fp.polys[f] : null, box: f >= 0 ? fp.box(f) : null });
     }
   }
   if (selected?.kind === 'new') items.push({ id: '__new', kind: 'custom', ll: space.toLL(selected.x, selected.y), color: '#fff', icon: '➕' });
@@ -225,7 +250,7 @@ function renderData() {
   $('#dataInfo').textContent = dataMarkers.length
     ? `${dataMarkers.length} marcadores${dataMeta.source ? ' · fuente: ' + dataMeta.source : ''}${dataMeta.updated ? ' · actualizado ' + dataMeta.updated : ''}.`
     : 'Aún no hay datos de marcadores del juego. Mientras tanto puedes añadir los tuyos con la herramienta «Marcador».';
-  $('#statsInfo').textContent = `${state.buildings.length} edificios marcados · ${state.custom.length} marcadores propios · ${(grid.coverage() * 100).toFixed(2)}% del mapa pintado como visitado.`;
+  $('#statsInfo').textContent = `${state.buildings.length} edificios coloreados${fp ? ` de ${fp.count.toLocaleString('es-ES')} que distingue el mapa` : ''} · ${state.custom.length} marcadores propios · ${(grid.coverage() * 100).toFixed(2)}% del mapa pintado como zona visitada.`;
   const n = $('#notice');
   n.hidden = base.type !== 'none';
   if (base.type === 'none') n.innerHTML = '<span>Sin imagen de mapa: estás viendo una rejilla de prueba.</span><button data-open-data>Cargar mapa</button>';
@@ -264,8 +289,8 @@ function renderDetail() {
     const b = state.buildings.find((x) => x.id === selected.id);
     if (!b) { selected = null; el.hidden = true; return; }
     const near = nearbyUnfound(b.x, b.y);
-    html = `<div class="d-head"><i style="background:#fff">🏠</i>Edificio marcado${close}</div>
-      <div class="status">${Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-status="${k}" class="${b.status === k ? 'on' : ''}">${s.icon} ${s.label}</button>`).join('')}</div>
+    html = `<div class="d-head"><i style="background:#fff">🏠</i>Edificio${close}</div>
+      <div class="status">${Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-status="${k}" class="${b.status === k ? 'on' : ''}">${dot(s.color)}${s.label}</button>`).join('')}</div>
       ${near.length ? `<div class="warn">Aquí hay ${near.length === 1 ? 'algo' : near.length + ' cosas'} que no has conseguido:</div><div class="list" style="margin-bottom:10px">${near.map((m) => itemRow(m, catById.get(m.cat).name)).join('')}</div>` : ''}
       <textarea data-note placeholder="Nota: qué había, por dónde se entra…">${esc(b.note)}</textarea>
       <div class="d-foot"><button class="btn danger" data-act="delete">Eliminar</button></div>`;
@@ -345,25 +370,46 @@ function goTo(id) {
 /* ---------------- Interacción con el mapa ---------------- */
 function onMapClick(e) {
   if (tool === 'paint' || tool === 'erase') return;
-  // Con «Edificio» solo se abren edificios ya marcados (para poder marcar uno encima de un marcador);
-  // con «Marcador» siempre se crea uno nuevo.
-  const hit = tool === 'add' ? null
-    : pins.hit(e.containerPoint, (it) => it.id !== '__new' && (tool !== 'building' || it.kind === 'building'), tool === 'building' ? 0 : 6);
-  if (hit) return openDetail({ kind: hit.kind === 'building' ? 'building' : 'marker', id: hit.id });
   const [x, y] = space.fromLL(e.latlng);
   const inside = x >= 0 && y >= 0 && x <= space.W && y <= space.H;
-  if (tool === 'building' && inside) {
-    // Marcado rápido: un toque = una marca, sin abrir ficha (tocar una marca existente sí la abre).
-    const b = { id: uid('b'), x, y, status: stamp, note: '', ts: Date.now() };
-    state.buildings.push(b); placed.push(b.id);
+  if (tool === 'add') return inside ? openDetail({ kind: 'new', x, y }) : closeDetail();
+
+  // ¿Qué edificio hay bajo el dedo, y está ya coloreado?
+  const f = fp ? fp.find(x, y, tapTolerance()) : -1;
+  let mark = f >= 0 ? state.buildings.find((b) => footprintOf(b) === f) : null;
+  if (!mark) {   // puntos sueltos (sitios sin silueta: islotes, casetas que el mapa no dibuja…)
+    const it = pins.hit(e.containerPoint, (i) => i.kind === 'building', 2);
+    if (it) mark = state.buildings.find((b) => b.id === it.id);
+  }
+
+  if (tool === 'building') {
+    if (!inside) return;
+    buildingUndo.push(JSON.stringify(state.buildings)); if (buildingUndo.length > 40) buildingUndo.shift();
     state.prefs.showBuildings = true;
     selected = null;
-    const near = VISITED_STATUSES.has(stamp) ? nearbyUnfound(x, y) : [];
-    if (near.length) toast(`Ojo: aquí hay ${near.length === 1 ? 'algo' : near.length + ' cosas'} sin conseguir (mira «Olvidos»)`);
+    if (mark && mark.status === stamp && !mark.note) state.buildings = state.buildings.filter((b) => b !== mark);   // mismo color: se quita
+    else if (mark) mark.status = stamp;                                                                             // otro color: se cambia
+    else {
+      const [bx, by] = f >= 0 ? fp.anchor(f, x, y) : [x, y];
+      state.buildings.push({ id: uid('b'), x: bx, y: by, status: stamp, note: '', ts: Date.now() });
+      const near = VISITED_STATUSES.has(stamp) ? nearbyUnfound(bx, by) : [];
+      if (near.length) toast(`Ojo: aquí hay ${near.length === 1 ? 'algo' : near.length + ' cosas'} sin conseguir (mira «Olvidos»)`);
+    }
     return change('buildings');
   }
-  if (tool === 'add' && inside) return openDetail({ kind: 'new', x, y });
+
+  // Explorar: primero marcadores, luego edificios coloreados.
+  const hit = pins.hit(e.containerPoint, (it) => it.kind !== 'building' && it.id !== '__new');
+  if (hit) return openDetail({ kind: 'marker', id: hit.id });
+  if (mark) return openDetail({ kind: 'building', id: mark.id });
   closeDetail();
+}
+
+/** Con «Edificio» y ratón, se resalta la silueta que se va a colorear. */
+function onMapHover(e) {
+  if (tool !== 'building' || !fp) return pins.setHover(null);
+  const [x, y] = space.fromLL(e.latlng), f = fp.find(x, y, tapTolerance());
+  pins.setHover(f >= 0 ? fp.polys[f] : null);
 }
 
 function setTool(t) {
@@ -373,6 +419,9 @@ function setTool(t) {
   const el = map.getContainer();
   el.className = el.className.replace(/\btool-\w+/g, '').trim() + ' tool-' + t;
   map.dragging[painting ? 'disable' : 'enable']();
+  // Tocar rápido varios edificios seguidos no debe contar como doble toque (zoom).
+  map.doubleClickZoom[t === 'explore' ? 'enable' : 'disable']();
+  if (t !== 'building') pins.setHover(null);
   $('#brushbar').hidden = !painting;
   $('#stampbar').hidden = t !== 'building';
   $$('#stampbar [data-stamp]').forEach((b) => b.classList.toggle('on', b.dataset.stamp === stamp));
@@ -446,16 +495,16 @@ function bindUI() {
     if (b) { brush = +b.dataset.brush; setTool(tool); }
   });
   $('#undoBtn').addEventListener('click', () => { const s = undoStack.pop(); if (s) restore(s); else toast('Nada que deshacer'); });
-  $('#stampbar').innerHTML = Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-stamp="${k}">${s.icon} ${s.label}</button>`).join('')
-    + '<button id="undoStamp" title="Quitar la última marca">↩</button>';
+  $('#stampbar').innerHTML = Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-stamp="${k}">${dot(s.color)}${s.label}</button>`).join('')
+    + '<button id="undoStamp" title="Deshacer el último cambio">↩</button>';
   $('#stampbar').addEventListener('click', (e) => {
     const b = e.target.closest('[data-stamp]');
     if (b) { stamp = b.dataset.stamp; return setTool('building'); }
     if (!e.target.closest('#undoStamp')) return;
-    let id; do { id = placed.pop(); } while (id && !state.buildings.some((x) => x.id === id));
-    if (!id) return toast('Nada que deshacer');
-    state.buildings = state.buildings.filter((x) => x.id !== id);
-    if (selected?.id === id) selected = null;
+    const snap = buildingUndo.pop();
+    if (!snap) return toast('Nada que deshacer');
+    state.buildings = JSON.parse(snap);
+    selected = null;
     change('buildings');
   });
 

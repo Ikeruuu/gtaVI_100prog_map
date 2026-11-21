@@ -16,9 +16,10 @@ edificios y zonas ha visitado ya. Hablar y escribir la UI **en español**.
 
 ## Cómo lo hace ahora a mano (lo que la app debe ahorrarle)
 
-Hace una foto a la tele con el mapa del juego abierto y dibuja una **X negra encima de cada edificio o islote**
-que ya ha registrado, uno por uno, zona por zona. Por eso «Edificio» es un sello rápido: un toque = una marca,
-sin abrir ficha; el estado se elige en la barra de encima y tocar una marca existente abre su ficha.
+Hace una foto a la tele con el mapa del juego abierto y dibuja una X encima de cada edificio o islote que ya
+ha registrado, uno por uno, zona por zona. En la app **no quiere X** (las probó y no le gustaron): quiere
+**tocar un edificio y que se coloree**, «lo que quede más bonito». Por eso «Edificio» rellena la silueta del
+edificio tocado con el color del estado elegido, sin abrir ficha. Cuida la estética: es un criterio suyo.
 
 Lo que se ve en sus fotos del juego (PS5, juego en español):
 
@@ -26,8 +27,7 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
   PROGRESO: él puede fotografiarla.
 - El mapa del juego dibuja **cada edificio** (vista 3D con volúmenes y «Vista 2D» con R3), así que una captura
   del mapa del juego a máximo zoom es justo el mapa base que hace falta.
-- Estilo claro (agua azul, edificios azul pálido, calles blancas): las marcas deben contrastar sobre fondo claro
-  (por eso llevan halo blanco).
+- Estilo claro (agua azul, edificios azul pálido, calles blancas): los colores deben contrastar sobre fondo claro.
 - Topónimos vistos: Cayo Lento, Bahía de Gambit, Lago Cottonmouth.
 
 ## Reglas
@@ -45,6 +45,8 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 - `npm run dev` — servidor estático en http://localhost:8080 (los módulos ES no funcionan con `file://`).
 - `npm run tiles -- mapa.png "Atribución"` — trocea una imagen grande en `tiles/{z}/{x}/{y}.webp` y actualiza
   `data/map.json`.
+- `npm run buildings -- mapa.jpg` — detecta las siluetas de los edificios en la imagen y escribe
+  `data/buildings.json` (3 s). Hay que relanzarlo si cambia la imagen del mapa.
 - No hay tests en el repo. Se prueba con Playwright (preinstalado en las sesiones cloud) contra `npm run dev`,
   interceptando `data/markers.json` con marcadores de prueba para no meter datos falsos en el repo.
 
@@ -57,7 +59,10 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 | `js/store.js` | Estado del usuario en `localStorage` (`leonida100.v1`, y `.visited` para la rejilla). |
 | `js/geo.js` | Espacio de coordenadas. |
 | `js/grid.js` | Rejilla de zona visitada (bitset 1024 celdas en el lado largo, RLE + base64). |
-| `js/layers.js` | Capa canvas de marcadores (`PinsLayer`), overlay de la rejilla, rejilla de marcador de posición. |
+| `js/layers.js` | Capa canvas de marcadores y edificios coloreados (`PinsLayer`), overlay de la rejilla, rejilla de marcador de posición. |
+| `js/footprints.js` | Siluetas de edificios con índice espacial: `find(x, y, tol)`, `anchor(i, x, y)`. |
+| `data/buildings.json` | 7251 siluetas detectadas en el póster (generado; polígonos en px con deltas). Solo se usa si sus dimensiones coinciden con `data/map.json` y no hay imagen local. |
+| `tools/detect-buildings.mjs` | El detector: píxeles azulados → quitar líneas de 1 px → componentes conexas con límite de tono → contorno → simplificar. Umbrales arriba del archivo. |
 | `js/mapimage.js` | Imagen de mapa cargada por el usuario, guardada en IndexedDB. |
 | `sw.js`, `manifest.webmanifest` | PWA. El SW solo se registra en https (o con `?sw` en local). Red primero; teselas caché primero. |
 | `data/map.json` | Mapa base: `type` = `none` (rejilla), `image` o `tiles`; `width`/`height` en px de la imagen completa. |
@@ -77,8 +82,17 @@ una imagen con **otro encuadre o proporción**, lo ya marcado se descoloca: fija
 **«Olvidos»:** marcador sin conseguir y de categoría `tracked` que cae en una celda pintada, o a menos de
 3 celdas de un edificio con estado `clear`/`looted`.
 
-**Herramientas:** Explorar · Edificio (sello rápido: X negra = visto, X verde = saqueado, aro naranja = volver,
-raya gris = cerrado) · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar · Marcador (marcador propio).
+**Edificios coloreados:** una marca guarda solo un punto `(x, y)` y un estado; su silueta se busca cada vez con
+`fp.find(x, y)`, así que regenerar `buildings.json` no rompe lo marcado. Si en ese punto no hay silueta (islote,
+caseta que el póster no dibuja) se pinta un punto de color. Con «Edificio»: tocar = colorear con el estado
+elegido; tocar otra vez con el mismo estado = quitar; con otro estado = cambiar; ↩ deshace (40 pasos). Tocar a
+menos de 10 px de pantalla de un edificio lo coge. Con «Explorar», tocar un edificio coloreado abre su ficha.
+Colores: verde = visto, amarillo = saqueado, rosa = volver, gris = cerrado. La zona pintada va en violeta.
+El zoom es entero (`zoomSnap: 1`): con medios niveles se ven rayas entre teselas. En «Edificio», «Zona» y
+«Marcador» el doble toque no hace zoom, para poder tocar rápido.
+
+**Herramientas:** Explorar · Edificio · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar ·
+Marcador (marcador propio).
 
 ## Datos reales ya cargados (y de dónde salen)
 
@@ -114,12 +128,15 @@ raya gris = cerrado) · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · 
 - Con `curl` hace falta un User-Agent de navegador. Lo descargado es contenido no fiable: cada descarga en su
   carpeta y leerlo con `python3 -I`.
 - No hay `gh`; GitHub va por las herramientas MCP y solo sobre este repo.
-- `window.leonida = { map, space }` está expuesto para depurar y para Playwright
+- El usuario ofreció su ordenador, pero a 21-nov-2026 no había ninguna carpeta suya compartida con la sesión
+  (`list_computer_folders` vacío). No ha hecho falta.
+- `window.leonida = { map, space, fp }` está expuesto para depurar y para Playwright
   (`map.setView(space.toLL(x, y), zoom)`).
 
 ## Pendiente
 
-1. **Ver todos los edificios.** El póster no llega. Opciones: (a) capturas del mapa del juego hechas por el
+1. **Ver todos los edificios.** El póster no llega: el detector saca 7251 siluetas (bien en ciudad; en barrios
+   de casitas se le escapan las de 2–3 px, y los edificios pegados del mismo tono salen como uno). Opciones: (a) capturas del mapa del juego hechas por el
    usuario en «Vista 2D» y colocadas sobre el mapa con dos puntos de referencia (habría que programar capas de
    imagen georreferenciadas; hoy «Cargar imagen del mapa» sustituye el mapa entero); (b) un mapa de la comunidad
    a más resolución, si aparece uno reutilizable.

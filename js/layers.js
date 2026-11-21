@@ -36,26 +36,13 @@ export function placeholderLayer(space) {
 }
 
 /**
- * Capa de marcadores dibujada en un único canvas (aguanta miles de puntos en móvil).
- * items: { id, kind: 'marker'|'custom'|'building', ll, color, icon, found, missed, shape }
- * Los edificios se dibujan como una marca hecha a mano: shape 'x' (tachado), 'ring' (pendiente) o 'dash' (cerrado).
+ * Capa de marcadores y edificios coloreados, dibujada en un único canvas (aguanta miles de puntos en móvil).
+ * items: { id, kind: 'marker'|'custom'|'building', ll, color, icon, found, missed, poly, box }
+ * Un edificio con silueta (`poly`, Float32Array [x, y, …] en unidades de mapa, y `box`) se rellena con su
+ * color; sin silueta se dibuja como un punto de color. `space` (js/geo.js) da la escala unidades -> pantalla.
  */
-function drawMark(g, x, y, r, it) {
-  const s = r * 0.65;
-  const path = () => {
-    g.beginPath();
-    if (it.shape === 'ring') g.arc(x, y, s, 0, Math.PI * 2);
-    else if (it.shape === 'dash') { g.moveTo(x - s, y); g.lineTo(x + s, y); }
-    else { g.moveTo(x - s, y - s); g.lineTo(x + s, y + s); g.moveTo(x + s, y - s); g.lineTo(x - s, y + s); }
-  };
-  g.lineCap = 'round';
-  path(); g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = r * 0.5 + 3; g.stroke();
-  path(); g.strokeStyle = it.color; g.lineWidth = r * 0.5; g.stroke();
-  g.lineCap = 'butt';
-}
-
 export const PinsLayer = L.Layer.extend({
-  initialize() { this.items = []; this._screen = []; this.selectedId = null; },
+  initialize(space) { this.space = space; this.items = []; this._screen = []; this.selectedId = null; this.hover = null; },
   onAdd(map) {
     const pane = map.getPane('pins') || map.createPane('pins');
     pane.style.zIndex = 450; pane.style.pointerEvents = 'none';
@@ -69,7 +56,8 @@ export const PinsLayer = L.Layer.extend({
     this._c.remove();
   },
   setItems(items) { this.items = items; this.draw(); },
-  select(id) { this.selectedId = id; this.draw(); },
+  /** Silueta a resaltar bajo el cursor (o null). */
+  setHover(poly) { if (poly !== this.hover) { this.hover = poly; this.draw(); } },
   draw() {
     const map = this._map; if (!map) return;
     const size = map.getSize(), dpr = window.devicePixelRatio || 1, c = this._c, g = this._g;
@@ -82,29 +70,61 @@ export const PinsLayer = L.Layer.extend({
     g.clearRect(0, 0, size.x, size.y);
     const r = Math.max(6, Math.min(15, 6 + (map.getZoom() - map.getMinZoom()) * 1.6));
     const screen = (this._screen = []);
+
+    // Unidades de mapa -> píxeles del contenedor: pantalla = origen + unidades * escala.
+    const o = map.latLngToContainerPoint(this.space.toLL(0, 0)), s = 1 / this.space.unitsPerPx(map.getZoom());
+    const path = (poly) => {
+      g.beginPath(); g.moveTo(o.x + poly[0] * s, o.y + poly[1] * s);
+      for (let i = 2; i < poly.length; i += 2) g.lineTo(o.x + poly[i] * s, o.y + poly[i + 1] * s);
+      g.closePath();
+    };
+
+    // 1) Edificios coloreados, por debajo de los marcadores.
+    g.lineJoin = 'round';
+    for (const it of this.items) {
+      if (it.kind !== 'building') continue;
+      const sel = it.id === this.selectedId;
+      if (it.poly) {
+        const b = it.box;
+        if (o.x + b[2] * s < 0 || o.y + b[3] * s < 0 || o.x + b[0] * s > size.x || o.y + b[1] * s > size.y) continue;
+        path(it.poly);
+        g.globalAlpha = 0.82; g.fillStyle = it.color; g.fill(); g.globalAlpha = 1;
+        g.strokeStyle = sel ? '#fff' : 'rgba(12,8,24,.75)'; g.lineWidth = sel ? 3 : Math.max(1, Math.min(2, s * 1.2)); g.stroke();
+        // A poco zoom un edificio mide un par de píxeles: se refuerza con un punto para que no se pierda.
+        if ((b[2] - b[0]) * s < 5 && (b[3] - b[1]) * s < 5) { g.beginPath(); g.arc(o.x + ((b[0] + b[2]) / 2) * s, o.y + ((b[1] + b[3]) / 2) * s, 2.5, 0, Math.PI * 2); g.fill(); }
+      } else {
+        const p = map.latLngToContainerPoint(it.ll), rr = r * 0.8;
+        if (p.x < -r || p.y < -r || p.x > size.x + r || p.y > size.y + r) continue;
+        screen.push({ it, x: p.x, y: p.y, r: rr });
+        g.beginPath(); g.arc(p.x, p.y, rr, 0, Math.PI * 2);
+        g.globalAlpha = 0.85; g.fillStyle = it.color; g.fill(); g.globalAlpha = 1;
+        g.strokeStyle = sel ? '#fff' : 'rgba(12,8,24,.75)'; g.lineWidth = sel ? 3 : 1.5; g.stroke();
+      }
+    }
+    if (this.hover) { path(this.hover); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); }
+
+    // 2) Marcadores.
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.font = `${Math.round(r * 1.15)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     for (const it of this.items) {
+      if (it.kind === 'building') continue;
       const p = map.latLngToContainerPoint(it.ll);
       if (p.x < -r || p.y < -r || p.x > size.x + r || p.y > size.y + r) continue;
       screen.push({ it, x: p.x, y: p.y, r });
-      if (it.kind === 'building') drawMark(g, p.x, p.y, r, it);
-      else {
-        g.globalAlpha = it.found ? 0.38 : 1;
-        g.beginPath(); g.arc(p.x, p.y, r, 0, Math.PI * 2);
-        g.fillStyle = it.color; g.fill();
-        g.lineWidth = it.kind === 'custom' ? 2 : 1.5;
-        g.strokeStyle = it.kind === 'custom' ? '#fff' : 'rgba(10,8,20,.85)';
-        if (it.kind === 'custom') g.setLineDash([3, 2]);
-        g.stroke(); g.setLineDash([]);
-        if (r >= 9 && it.icon) g.fillText(it.icon, p.x, p.y + 1);
-        g.globalAlpha = 1;
-      }
+      g.globalAlpha = it.found ? 0.38 : 1;
+      g.beginPath(); g.arc(p.x, p.y, r, 0, Math.PI * 2);
+      g.fillStyle = it.color; g.fill();
+      g.lineWidth = it.kind === 'custom' ? 2 : 1.5;
+      g.strokeStyle = it.kind === 'custom' ? '#fff' : 'rgba(10,8,20,.85)';
+      if (it.kind === 'custom') g.setLineDash([3, 2]);
+      g.stroke(); g.setLineDash([]);
+      if (r >= 9 && it.icon) g.fillText(it.icon, p.x, p.y + 1);
+      g.globalAlpha = 1;
       if (it.missed) { g.beginPath(); g.arc(p.x, p.y, r + 4, 0, Math.PI * 2); g.strokeStyle = '#ffb347'; g.lineWidth = 2.5; g.stroke(); }
       if (it.id === this.selectedId) { g.beginPath(); g.arc(p.x, p.y, r + 7, 0, Math.PI * 2); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); }
     }
   },
-  /** Marcador bajo un punto del contenedor (el dibujado más arriba gana). */
+  /** Marcador (o punto de edificio sin silueta) bajo un punto del contenedor; el dibujado más arriba gana. */
   hit(pt, filter, pad = 6) {
     for (let i = this._screen.length - 1; i >= 0; i--) {
       const s = this._screen[i], dx = s.x - pt.x, dy = s.y - pt.y, rr = s.r + pad;

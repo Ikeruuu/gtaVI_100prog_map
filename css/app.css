@@ -196,3 +196,11 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
 }
 
 .leaflet-control-attribution { font-size: 10px; max-width: 70vw; }
+
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,.45); }
+
+@media (max-width: 820px) {
+  .minibar { gap: 4px; padding: 5px 6px; }
+  .minibar button { padding: 5px 7px; font-size: 12px; }
+  .minibar .dot { margin-right: 4px; }
+}

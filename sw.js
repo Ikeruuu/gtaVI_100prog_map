@@ -1,13 +1,13 @@
 // Service worker: permite instalar la app y usarla sin conexión.
 // Estrategia: red primero (para ver siempre la última versión) con copia en caché de reserva;
 // las teselas del mapa van caché primero porque no cambian.
-const SHELL = 'leonida-shell-v1';
+const SHELL = 'leonida-shell-v2';
 const TILES = 'leonida-tiles-v1';
 const CORE = [
   './', 'index.html', 'css/app.css', 'manifest.webmanifest',
-  'js/app.js', 'js/store.js', 'js/geo.js', 'js/grid.js', 'js/layers.js', 'js/mapimage.js',
+  'js/app.js', 'js/store.js', 'js/geo.js', 'js/grid.js', 'js/layers.js', 'js/mapimage.js', 'js/footprints.js',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css',
-  'data/map.json', 'data/categories.json', 'data/markers.json', 'data/checklist.json',
+  'data/map.json', 'data/categories.json', 'data/markers.json', 'data/checklist.json', 'data/buildings.json',
   'icons/icon.svg', 'icons/icon-192.png',
 ];
 

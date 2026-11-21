@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "node tools/serve.mjs",
-    "tiles": "node tools/make-tiles.mjs"
+    "tiles": "node tools/make-tiles.mjs",
+    "buildings": "node tools/detect-buildings.mjs"
   },
   "devDependencies": {
     "leaflet": "1.9.4",

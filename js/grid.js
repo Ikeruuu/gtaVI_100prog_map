@@ -1,6 +1,6 @@
 // Rejilla de "zona visitada": un bit por celda (1024 celdas en el lado largo del mapa).
 // Se pinta en un canvas de 1 píxel por celda que Leaflet escala sobre el mapa.
-const COLOR = '#2ee6a6';
+const COLOR = '#9d7bff';   // violeta: que no se confunda con el verde de los edificios vistos
 
 export class VisitedGrid {
   constructor(W, H, n = 1024) {
