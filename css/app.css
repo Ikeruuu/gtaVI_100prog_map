@@ -123,13 +123,13 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
 #toolbar button i { font-style: normal; font-size: 19px; line-height: 1.2; }
 #toolbar button.on { background: var(--bg); color: var(--text); box-shadow: 0 0 0 1px var(--pink); }
 
-#brushbar {
+.minibar {
   position: absolute; left: 50%; bottom: calc(84px + var(--safe-b)); transform: translateX(-50%); z-index: 1000;
   display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(26,20,41,.96);
   border: 1px solid var(--line); border-radius: 12px; font-size: 12px; color: var(--muted); white-space: nowrap;
 }
-#brushbar button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; font-weight: 700; }
-#brushbar button.on { border-color: var(--teal); color: var(--teal); }
+.minibar button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; font-weight: 700; }
+.minibar button.on { border-color: var(--teal); color: var(--teal); }
 #brushCursor { position: absolute; z-index: 950; border: 2px solid var(--teal); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
 #brushCursor.erase { border-color: var(--danger); }
 
@@ -175,7 +175,8 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
   #notice { max-width: calc(100% - 80px); left: 66px; transform: none; }
   #toolbar { width: calc(100% - 16px); justify-content: space-between; bottom: calc(8px + var(--safe-b)); }
   #toolbar button { min-width: 0; flex: 1; padding: 6px 2px; }
-  #brushbar { bottom: calc(76px + var(--safe-b)); }
+  .minibar { bottom: calc(76px + var(--safe-b)); left: 8px; right: 8px; transform: none; overflow-x: auto; }
+  .minibar button { flex: none; }
   #detail { left: 8px; right: 8px; top: auto; bottom: calc(76px + var(--safe-b)); width: auto; max-height: 55%; }
   #toast { bottom: calc(132px + var(--safe-b)); }
   .leaflet-control-zoom { display: none; }

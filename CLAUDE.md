@@ -14,6 +14,22 @@ edificios y zonas ha visitado ya. Hablar y escribir la UI **en español**.
 - Más adelante: integrarlo en su web de noticias de GTA 6 (otro repo) para uso público.
 - Está jugando ahora mismo (el juego salió en noviembre de 2026): los datos de la comunidad aún están incompletos.
 
+## Cómo lo hace ahora a mano (lo que la app debe ahorrarle)
+
+Hace una foto a la tele con el mapa del juego abierto y dibuja una **X negra encima de cada edificio o islote**
+que ya ha registrado, uno por uno, zona por zona. Por eso «Edificio» es un sello rápido: un toque = una marca,
+sin abrir ficha; el estado se elige en la barra de encima y tocar una marca existente abre su ficha.
+
+Lo que se ve en sus fotos del juego (PS5, juego en español):
+
+- Menú de pausa con pestañas **JASON Y LUCÍA · MAPA · INFORME · PROGRESO**. La lista oficial del 100% estará en
+  PROGRESO: él puede fotografiarla.
+- El mapa del juego dibuja **cada edificio** (vista 3D con volúmenes y «Vista 2D» con R3), así que una captura
+  del mapa del juego a máximo zoom es justo el mapa base que hace falta.
+- Estilo claro (agua azul, edificios azul pálido, calles blancas): las marcas deben contrastar sobre fondo claro
+  (por eso llevan halo blanco).
+- Topónimos vistos: Cayo Lento, Bahía de Gambit, Lago Cottonmouth.
+
 ## Reglas
 
 - **No inventar datos del juego.** `data/markers.json` solo lleva posiciones verificadas de una fuente citada en
@@ -59,8 +75,8 @@ una imagen con **otro encuadre o proporción**, lo ya marcado se descoloca: fija
 **«Olvidos»:** marcador sin conseguir y de categoría `tracked` que cae en una celda pintada, o a menos de
 3 celdas de un edificio con estado `clear`/`looted`.
 
-**Herramientas:** Explorar · Edificio (un toque = edificio visitado) · Zona (pincel, un dedo pinta y dos dedos
-mueven/zoom) · Borrar · Marcador (marcador propio).
+**Herramientas:** Explorar · Edificio (sello rápido: X negra = visto, X verde = saqueado, aro naranja = volver,
+raya gris = cerrado) · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar · Marcador (marcador propio).
 
 ## Entorno de las sesiones cloud
 

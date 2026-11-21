@@ -10,11 +10,12 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const getJSON = (u) => fetch(u, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error(`${u}: ${r.status}`); return r.json(); });
 
+// Marcas de edificio: igual que tachar con una X sobre una foto del mapa, pero con estados.
 const BUILDING_STATUS = {
-  clear: { icon: '✅', label: 'Visto, nada', color: '#2ee6a6' },
-  looted: { icon: '💰', label: 'Saqueado', color: '#ffd23f' },
-  todo: { icon: '🔁', label: 'Volver', color: '#ff9f1c' },
-  locked: { icon: '🔒', label: 'Cerrado', color: '#8d99ae' },
+  clear: { icon: '✕', label: 'Visto, nada', color: '#14101f', shape: 'x' },
+  looted: { icon: '💰', label: 'Saqueado', color: '#0b9e6a', shape: 'x' },
+  todo: { icon: '🔁', label: 'Volver', color: '#ff7a00', shape: 'ring' },
+  locked: { icon: '🔒', label: 'Cerrado', color: '#6c757d', shape: 'dash' },
 };
 const VISITED_STATUSES = new Set(['clear', 'looted']);
 
@@ -23,6 +24,8 @@ let groups = [], cats = [], catById = new Map();
 let dataMarkers = [], dataMeta = {}, markerIndex = new Map(), base = {};
 let missed = [], missedIds = new Set();
 let tool = 'explore', brush = 22, selected = null;
+let stamp = 'clear';        // estado con el que se marcan los edificios al tocar
+const placed = [];          // edificios marcados en esta sesión, para «Deshacer»
 const undoStack = [];
 
 /* ---------------- Arranque ---------------- */
@@ -132,7 +135,7 @@ function renderPins() {
   if (p.showBuildings) {
     for (const b of state.buildings) {
       const s = BUILDING_STATUS[b.status] || BUILDING_STATUS.clear;
-      items.push({ id: b.id, kind: 'building', ll: space.toLL(b.x, b.y), color: s.color, icon: s.icon });
+      items.push({ id: b.id, kind: 'building', ll: space.toLL(b.x, b.y), color: s.color, shape: s.shape });
     }
   }
   if (selected?.kind === 'new') items.push({ id: '__new', kind: 'custom', ll: space.toLL(selected.x, selected.y), color: '#fff', icon: '➕' });
@@ -232,7 +235,7 @@ function renderDetail() {
     const b = state.buildings.find((x) => x.id === selected.id);
     if (!b) { selected = null; el.hidden = true; return; }
     const near = nearbyUnfound(b.x, b.y);
-    html = `<div class="d-head"><i style="background:${BUILDING_STATUS[b.status].color}">🏠</i>Edificio marcado${close}</div>
+    html = `<div class="d-head"><i style="background:#fff">🏠</i>Edificio marcado${close}</div>
       <div class="status">${Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-status="${k}" class="${b.status === k ? 'on' : ''}">${s.icon} ${s.label}</button>`).join('')}</div>
       ${near.length ? `<div class="warn">Aquí hay ${near.length === 1 ? 'algo' : near.length + ' cosas'} que no has conseguido:</div><div class="list" style="margin-bottom:10px">${near.map((m) => itemRow(m, catById.get(m.cat).name)).join('')}</div>` : ''}
       <textarea data-note placeholder="Nota: qué había, por dónde se entra…">${esc(b.note)}</textarea>
@@ -315,15 +318,19 @@ function onMapClick(e) {
   if (tool === 'paint' || tool === 'erase') return;
   // Con «Edificio» solo se abren edificios ya marcados (para poder marcar uno encima de un marcador);
   // con «Marcador» siempre se crea uno nuevo.
-  const hit = tool === 'add' ? null : pins.hit(e.containerPoint, (it) => it.id !== '__new' && (tool !== 'building' || it.kind === 'building'));
+  const hit = tool === 'add' ? null
+    : pins.hit(e.containerPoint, (it) => it.id !== '__new' && (tool !== 'building' || it.kind === 'building'), tool === 'building' ? 0 : 6);
   if (hit) return openDetail({ kind: hit.kind === 'building' ? 'building' : 'marker', id: hit.id });
   const [x, y] = space.fromLL(e.latlng);
   const inside = x >= 0 && y >= 0 && x <= space.W && y <= space.H;
   if (tool === 'building' && inside) {
-    const b = { id: uid('b'), x, y, status: 'clear', note: '', ts: Date.now() };
-    state.buildings.push(b);
+    // Marcado rápido: un toque = una marca, sin abrir ficha (tocar una marca existente sí la abre).
+    const b = { id: uid('b'), x, y, status: stamp, note: '', ts: Date.now() };
+    state.buildings.push(b); placed.push(b.id);
     state.prefs.showBuildings = true;
-    selected = { kind: 'building', id: b.id };
+    selected = null;
+    const near = VISITED_STATUSES.has(stamp) ? nearbyUnfound(x, y) : [];
+    if (near.length) toast(`Ojo: aquí hay ${near.length === 1 ? 'algo' : near.length + ' cosas'} sin conseguir (mira «Olvidos»)`);
     return change('buildings');
   }
   if (tool === 'add' && inside) return openDetail({ kind: 'new', x, y });
@@ -338,6 +345,8 @@ function setTool(t) {
   el.className = el.className.replace(/\btool-\w+/g, '').trim() + ' tool-' + t;
   map.dragging[painting ? 'disable' : 'enable']();
   $('#brushbar').hidden = !painting;
+  $('#stampbar').hidden = t !== 'building';
+  $$('#stampbar [data-stamp]').forEach((b) => b.classList.toggle('on', b.dataset.stamp === stamp));
   $('#brushCursor').hidden = true;
   $('#brushCursor').classList.toggle('erase', t === 'erase');
   $$('#brushbar [data-brush]').forEach((b) => b.classList.toggle('on', +b.dataset.brush === brush));
@@ -408,6 +417,18 @@ function bindUI() {
     if (b) { brush = +b.dataset.brush; setTool(tool); }
   });
   $('#undoBtn').addEventListener('click', () => { const s = undoStack.pop(); if (s) restore(s); else toast('Nada que deshacer'); });
+  $('#stampbar').innerHTML = Object.entries(BUILDING_STATUS).map(([k, s]) => `<button data-stamp="${k}">${s.icon} ${s.label}</button>`).join('')
+    + '<button id="undoStamp" title="Quitar la última marca">↩</button>';
+  $('#stampbar').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-stamp]');
+    if (b) { stamp = b.dataset.stamp; return setTool('building'); }
+    if (!e.target.closest('#undoStamp')) return;
+    let id; do { id = placed.pop(); } while (id && !state.buildings.some((x) => x.id === id));
+    if (!id) return toast('Nada que deshacer');
+    state.buildings = state.buildings.filter((x) => x.id !== id);
+    if (selected?.id === id) selected = null;
+    change('buildings');
+  });
 
   $('#modeSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) { state.prefs.mode = b.dataset.mode; change('prefs'); } });
   $('#tgVisited').addEventListener('change', (e) => { state.prefs.showVisited = e.target.checked; change('prefs'); });
