@@ -7,7 +7,7 @@ const CELL = 100;   // tamaño de celda del índice, en unidades
 
 export class Footprints {
   constructor(data) {
-    const k = UNITS / data.width;
+    const k = UNITS / data.width / (data.scale || 1);   // las coordenadas vienen en píxeles × scale
     this.count = data.polys.length;
     this.polys = new Array(this.count);    // Float32Array [x0, y0, x1, y1, …]
     this.boxes = new Float32Array(this.count * 4);

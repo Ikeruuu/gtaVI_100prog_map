@@ -426,6 +426,7 @@ function setTool(t) {
   // Tocar rápido varios edificios seguidos no debe contar como doble toque (zoom).
   map.doubleClickZoom[t === 'explore' ? 'enable' : 'disable']();
   if (t !== 'building') pins.setHover(null);
+  pins.setOutlines(fp, t === 'building');
   $('#brushbar').hidden = !painting;
   $('#stampbar').hidden = t !== 'building';
   $$('#stampbar [data-stamp]').forEach((b) => b.classList.toggle('on', b.dataset.stamp === stamp));

@@ -208,3 +208,5 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
 #syncToken { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; outline: none; margin-bottom: 8px; }
 #syncToken:focus { border-color: var(--pink); }
 a.btn { text-decoration: none; }
+
+.ext { margin-top: 16px; font-weight: 500; color: var(--muted); }

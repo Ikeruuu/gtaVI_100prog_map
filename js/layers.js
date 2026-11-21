@@ -42,7 +42,7 @@ export function placeholderLayer(space) {
  * color; sin silueta se dibuja como un punto de color. `space` (js/geo.js) da la escala unidades -> pantalla.
  */
 export const PinsLayer = L.Layer.extend({
-  initialize(space) { this.space = space; this.items = []; this._screen = []; this.selectedId = null; this.hover = null; },
+  initialize(space) { this.space = space; this.items = []; this._screen = []; this.selectedId = null; this.hover = null; this.fp = null; this.outlines = false; },
   onAdd(map) {
     const pane = map.getPane('pins') || map.createPane('pins');
     pane.style.zIndex = 450; pane.style.pointerEvents = 'none';
@@ -58,6 +58,8 @@ export const PinsLayer = L.Layer.extend({
   setItems(items) { this.items = items; this.draw(); },
   /** Silueta a resaltar bajo el cursor (o null). */
   setHover(poly) { if (poly !== this.hover) { this.hover = poly; this.draw(); } },
+  /** Con `on`, se dibuja el contorno de todos los edificios a la vista (fp = Footprints) para ver qué se puede tocar. */
+  setOutlines(fp, on) { this.fp = fp; if (on !== this.outlines) { this.outlines = on; this.draw(); } },
   draw() {
     const map = this._map; if (!map) return;
     const size = map.getSize(), dpr = window.devicePixelRatio || 1, c = this._c, g = this._g;
@@ -79,8 +81,23 @@ export const PinsLayer = L.Layer.extend({
       g.closePath();
     };
 
-    // 1) Edificios coloreados, por debajo de los marcadores.
+    // 0) Contorno de todos los edificios a la vista: el póster se ve borroso de cerca y así se sabe qué es cada uno.
     g.lineJoin = 'round';
+    if (this.outlines && this.fp && s >= 0.55) {
+      const fp = this.fp, b = fp.boxes, x0 = -o.x / s, y0 = -o.y / s, x1 = (size.x - o.x) / s, y1 = (size.y - o.y) / s;
+      g.beginPath();
+      for (let i = 0; i < fp.count; i++) {
+        if (b[i * 4 + 2] < x0 || b[i * 4 + 3] < y0 || b[i * 4] > x1 || b[i * 4 + 1] > y1) continue;
+        const p = fp.polys[i];
+        g.moveTo(o.x + p[0] * s, o.y + p[1] * s);
+        for (let j = 2; j < p.length; j += 2) g.lineTo(o.x + p[j] * s, o.y + p[j + 1] * s);
+        g.closePath();
+      }
+      g.fillStyle = 'rgba(255,255,255,.14)'; g.fill();
+      g.strokeStyle = 'rgba(20,14,40,.55)'; g.lineWidth = 1; g.stroke();
+    }
+
+    // 1) Edificios coloreados, por debajo de los marcadores.
     for (const it of this.items) {
       if (it.kind !== 'building') continue;
       const sel = it.id === this.selectedId;
