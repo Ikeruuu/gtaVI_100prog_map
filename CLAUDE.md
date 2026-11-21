@@ -37,7 +37,9 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 - Sin paso de build ni framework: HTML + módulos ES + Leaflet copiado en `vendor/`. Debe poder servirse tal cual
   (GitHub Pages) e incrustarse con un `<iframe>`.
 - El progreso del usuario nunca va en el repo: vive en su navegador.
-- Rama de trabajo: `claude/funny-pasteur-gvzi0w`. No abrir PR salvo que lo pida.
+- Rama de trabajo: `claude/funny-pasteur-gvzi0w`. No abrir PR salvo que lo pida. El 21-nov-2026 pidió
+  «migrar a main lo que esté bien» y se avanzó `main` hasta esa rama; para volver a tocar `main` hay que
+  tener su permiso otra vez.
 
 ## Comandos
 
@@ -162,7 +164,8 @@ Marcador (marcador propio).
      importador en `tools/` que calibre las coordenadas de la fuente contra el póster con puntos de control.
      Los interruptores por categoría de «Capas» ya sirven para poner y quitar.
 3. **Sincronización:** hecha (ver arriba); pendiente de que el usuario la pruebe con su cuenta.
-4. **Publicación.** El usuario ha decidido GitHub Pages (a 21-nov-2026 aún sin activar). Lo activa él en
-   Settings → Pages; puede desplegar desde la rama de trabajo o desde `main` tras fusionar.
+4. **Publicación.** El usuario ha decidido GitHub Pages. `main` ya tiene todo el código; falta que él lo
+   active en Settings → Pages (rama `main`, carpeta raíz). Desde la sesión cloud no hay herramienta para ello.
+   Tiene una carpeta local `Documentos/Mapa interactivo Gta6` para clonar el repo, aún no compartida con la sesión.
 5. Versión pública para su web de noticias: el mapa es de Rockstar (uso de fan, sin ánimo de lucro) y la lista
    del 100% viene de una guía de terceros; revisar ambas cosas antes de publicarlo con publicidad.
