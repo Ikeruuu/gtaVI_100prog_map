@@ -12,22 +12,16 @@ npm run dev        # http://localhost:8080
 
 O publicarlo con GitHub Pages (rama y carpeta raíz): es una web estática, sin build.
 
-## El mapa
+## El mapa y los datos
 
-Viene con el póster oficial «The Great State of Leonida» de Rockstar (5775×7900 px) troceado en `tiles/`.
-Para cambiarlo por otra imagen:
-
-- **Solo en tu dispositivo:** pestaña «Datos» → «Cargar imagen del mapa…».
-- **Para todos:** `npm install && npm run tiles -- mapa.png "Atribución"` regenera `tiles/` y `data/map.json`.
-
-Si cambias a una imagen con otro encuadre, lo que ya tengas marcado se descoloca.
-
-## Datos
-
-- `data/checklist.json`: los 35 requisitos del 100% (fuente: guía de PowerPyx, 18-nov-2026).
-- `data/categories.json`: categorías y colores.
-- `data/markers.json`: marcadores del juego (vacío hasta importar posiciones verificadas).
+- **Mapa y localizaciones:** [MapGenie](https://mapgenie.io/grand-theft-auto-6/maps/leonida), con permiso de su
+  autor. El mapa se carga en vivo desde sus servidores (hace falta conexión). De cada localización se guarda la
+  posición, la categoría y el nombre; para fotos y detalles, cada ficha enlaza a MapGenie.
+- **Edificios:** siluetas detectadas sobre ese mapa (`data/buildings.json`).
+- **Lista del 100%:** guía de PowerPyx (18-nov-2026), en `data/checklist.json`.
 - Tu progreso se guarda en el navegador. «Exportar» / «Importar» lo pasa de un dispositivo a otro.
+
+De reserva queda el póster oficial de Rockstar (`tiles/`, `data/map-poster.json`).
 
 ## Sincronizar móvil y ordenador
 

@@ -1,7 +1,7 @@
 // Service worker: permite instalar la app y usarla sin conexión.
 // Estrategia: red primero (para ver siempre la última versión) con copia en caché de reserva;
 // las teselas del mapa van caché primero porque no cambian.
-const SHELL = 'leonida-shell-v5';
+const SHELL = 'leonida-shell-v7';
 const TILES = 'leonida-tiles-v1';
 const CORE = [
   './', 'index.html', 'css/app.css', 'manifest.webmanifest',

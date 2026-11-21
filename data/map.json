@@ -1,8 +1,17 @@
 {
-  "_doc": "Mapa base. type: 'none' (rejilla de marcador de posición), 'image' (una sola imagen) o 'tiles' (pirámide generada con `npm run tiles`). width/height = píxeles de la imagen de referencia a resolución completa.",
-  "type": "tiles",
-  "url": "tiles/{z}/{x}/{y}.webp",
-  "width": 5775,
-  "height": 7900,
-  "attribution": "Mapa: póster oficial «The Great State of Leonida» © Rockstar Games"
+  "_doc": "Mapa base. type: 'xyz' = teselas servidas por MapGenie (con permiso de su autor; no se copian al repo). El mapa ocupa un cuadrado de width×height px a zoom máximo dentro de su rejilla mundial: nuestro zoom z es su zoom z+zoomOffset, y nuestra tesela (x, y) es la suya (x + tileOffset·2^z, y + tileOffset·2^z). view = encuadre inicial en unidades de mapa [x0, y0, x1, y1]. fromPoster = cómo pasar a este mapa lo marcado sobre el póster antiguo (nuevo = a·viejo + t). Alternativa sin depender de nadie: data/map-poster.json + tiles/ + data/buildings-poster.json.",
+  "id": "mapgenie-leonida",
+  "type": "xyz",
+  "url": "https://tiles.mapgenie.io/games/grand-theft-auto-6/leonida/day-v2/{z}/{y}/{x}.jpg",
+  "width": 65536,
+  "height": 65536,
+  "zoomOffset": 8,
+  "tileOffset": 127,
+  "overzoom": 1,
+  "view": [3200, 2400, 7100, 7800],
+  "nearRadius": 8,
+  "background": "#2f90b0",
+  "cleanBuildings": false,
+  "attribution": "Mapa y localizaciones: <a href=\"https://mapgenie.io/grand-theft-auto-6/maps/leonida\" target=\"_blank\" rel=\"noopener\">MapGenie</a>",
+  "fromPoster": { "w": 10000, "h": 13679.65, "ax": 0.46708, "ay": 0.46788, "tx": 2722.22, "ty": 1795.41 }
 }

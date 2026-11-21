@@ -210,3 +210,5 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
 a.btn { text-decoration: none; }
 
 .ext { margin-top: 16px; font-weight: 500; color: var(--muted); }
+
+.ext-link { width: 100%; justify-content: center; margin-bottom: 8px; font-weight: 500; }

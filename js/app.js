@@ -1,5 +1,5 @@
 /* global L */
-import { state, change, on, flush, exportJSON, importJSON, resetAll, loadVisited, saveVisited, uid } from './store.js';
+import { state, change, on, flush, exportJSON, importJSON, resetAll, loadVisited, saveVisited, setSpace, uid } from './store.js';
 import { makeSpace } from './geo.js';
 import { VisitedGrid } from './grid.js';
 import { CanvasOverlay, PinsLayer, placeholderLayer } from './layers.js';
@@ -44,7 +44,15 @@ async function boot() {
   reqs = chk.sections.flatMap((s) => s.items);
   groups = catCfg.groups; cats = catCfg.categories; catById = new Map(cats.map((c) => [c.id, c]));
   dataMarkers = (mk.markers || []).filter((m) => catById.has(m.cat));
-  dataMeta = { source: mk.source, updated: mk.updated };
+  dataMeta = { source: mk.source, updated: mk.updated, linkTemplate: mk.linkTemplate };
+
+  // Si cambia el juego de categorías, las que vienen marcadas como «ocultas de inicio» se ocultan una vez.
+  const catsVersion = `${mk.source || ''}:${cats.length}`;
+  if (state.prefs.catsVersion !== catsVersion) {
+    state.hidden = cats.filter((c) => c.defaultHidden).map((c) => c.id);
+    state.prefs.catsVersion = catsVersion;
+    flush();
+  }
 
   base = { ...mapCfg };
   try {
@@ -80,14 +88,22 @@ async function boot() {
 function setupMap() {
   space = makeSpace(base.width, base.height);
   map = L.map('map', {
-    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + OVERZOOM, zoomSnap: 1, zoomDelta: 1,   // zoom entero: con medios niveles se ven rayas entre teselas
+    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + (base.overzoom ?? OVERZOOM), zoomSnap: 1, zoomDelta: 1,   // zoom entero: con medios niveles se ven rayas entre teselas
     wheelPxPerZoomLevel: 90, zoomControl: false, maxBoundsViscosity: 0.9, attributionControl: !!base.attribution,
   });
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+  if (base.background) map.getContainer().style.background = base.background;   // color del mar, para que no se note el borde de las teselas
   if (map.attributionControl) map.attributionControl.setPosition('topright').setPrefix('Leaflet');   // abajo lo tapa la barra de herramientas
 
+  const tileOpts = { tileSize: 256, minNativeZoom: 0, maxNativeZoom: space.Z, maxZoom: space.Z + (base.overzoom ?? OVERZOOM), bounds: space.bounds, noWrap: true, attribution: base.attribution || '' };
   if (base.type === 'tiles') {
-    L.tileLayer(base.url, { tileSize: 256, minNativeZoom: 0, maxNativeZoom: space.Z, maxZoom: space.Z + OVERZOOM, bounds: space.bounds, noWrap: true, attribution: base.attribution || '' }).addTo(map);
+    L.tileLayer(base.url, tileOpts).addTo(map);
+  } else if (base.type === 'xyz') {
+    // Teselas de un servidor ajeno cuyo mapa ocupa un cuadrado dentro de su rejilla mundial (ver data/map.json).
+    const Remote = L.TileLayer.extend({
+      getTileUrl(c) { const off = base.tileOffset * 2 ** c.z; return L.Util.template(this._url, { z: c.z + base.zoomOffset, x: c.x + off, y: c.y + off }); },
+    });
+    new Remote(base.url, tileOpts).addTo(map);
   } else if (base.type === 'image') {
     L.imageOverlay(base.url, space.bounds, { attribution: base.attribution || '' }).addTo(map);
   } else {
@@ -95,17 +111,40 @@ function setupMap() {
   }
 
   grid = new VisitedGrid(space.W, space.H);
+  if (!base.local && setSpace(base.id || 'poster', base.fromPoster, convertVisited)) {
+    setTimeout(() => toast('He pasado al mapa nuevo lo que tenías marcado. Revisa que los edificios coincidan.'), 800);
+  }
   loadGrid();
   visitedOverlay = new CanvasOverlay(grid.canvas, space.bounds, { className: 'visited-layer', opacity: 0.42, interactive: false });
   pins = new PinsLayer(space).addTo(map);
+  pins.outlineMinScale = base.type === 'xyz' ? 1.6 : 0.55;   // a partir de qué escala (px por unidad) se dibujan todos los edificios
 
-  map.setMaxBounds(space.bounds.pad(0.3));
-  map.fitBounds(space.bounds);
+  const view = base.view ? L.latLngBounds(space.toLL(base.view[0], base.view[3]), space.toLL(base.view[2], base.view[1])) : space.bounds;
+  map.setMaxBounds(view.pad(base.view ? 0.5 : 0.3));
+  map.fitBounds(view);
+  if (base.view) map.setMinZoom(Math.max(0, map.getZoom() - 1));
   map.on('click', onMapClick);
   map.on('mousemove', onMapHover);
   map.on('mouseout', () => pins.setHover(null));
   window.leonida = { map, space, fp };   // para depurar y para las pruebas con Playwright
 }
+
+/** Zona pintada sobre el póster antiguo -> rejilla de este mapa. */
+function convertVisited(str) {
+  const T = base.fromPoster;
+  if (!str || !T) return null;
+  const old = new VisitedGrid(T.w, T.h);
+  if (!old.load(str)) return null;
+  const neu = new VisitedGrid(space.W, space.H);
+  for (let r = 0; r < old.rows; r++) for (let c = 0; c < old.cols; c++) {
+    if (old.get(c, r)) neu.paint(T.ax * (c + 0.5) * old.cell + T.tx, T.ay * (r + 0.5) * old.cell + T.ty, old.cell * T.ax * 0.6, true);
+  }
+  return neu.serialize();
+}
+/** Con qué estilo se dibujan todos los edificios del mapa (ver PinsLayer.setOutlines). */
+const outlineMode = () => (base.cleanBuildings !== false ? ((state.prefs.outlines || tool === 'building') ? 'clean' : false) : (tool === 'building' ? 'hint' : false));
+/** Radio (unidades) en el que un marcador se considera «en» un edificio marcado. */
+const nearRadius = () => base.nearRadius ?? grid.cell * 3;
 
 function loadGrid() {
   if (!grid.load(loadVisited())) toast('Las zonas pintadas eran de un mapa con otra proporción y no se pueden mostrar.');
@@ -127,7 +166,7 @@ function allMarkers() { return dataMarkers.concat(state.custom); }
 const isTracked = (m) => catById.get(m.cat)?.tracked !== false;
 
 function computeMissed() {
-  const R2 = (grid.cell * 3) ** 2;
+  const R2 = nearRadius() ** 2;
   const seen = state.buildings.filter((b) => VISITED_STATUSES.has(b.status));
   const out = [];
   for (const m of allMarkers()) {
@@ -140,7 +179,7 @@ function computeMissed() {
 }
 
 function nearbyUnfound(x, y) {
-  const R2 = (grid.cell * 3) ** 2;
+  const R2 = nearRadius() ** 2;
   return allMarkers().filter((m) => !state.found[m.id] && isTracked(m) && (m.x - x) ** 2 + (m.y - y) ** 2 <= R2);
 }
 
@@ -178,7 +217,7 @@ function renderPins() {
   if (selected?.kind === 'new') items.push({ id: '__new', kind: 'custom', ll: space.toLL(selected.x, selected.y), color: '#fff', icon: '➕' });
   pins.selectedId = selected?.kind === 'new' ? '__new' : selected?.id ?? null;
   pins.setItems(items);
-  pins.setOutlines(fp, p.outlines || tool === 'building');
+  pins.setOutlines(fp, outlineMode());
   if (p.showVisited) visitedOverlay.addTo(map); else visitedOverlay.remove();
 }
 
@@ -250,7 +289,8 @@ function renderData() {
     ? `Usando la imagen que cargaste en este dispositivo (${base.width}×${base.height} px).`
     : base.type === 'none'
       ? 'Todavía no hay imagen del mapa: se muestra una rejilla. Carga una imagen del mapa completo en alta resolución (cuanta más resolución, mejor se distinguen los edificios al hacer zoom). Se guarda solo en este dispositivo.'
-      : `Mapa alojado (${base.width}×${base.height} px).`;
+      : base.type === 'xyz' ? 'Mapa detallado de MapGenie, cargado desde sus servidores (hace falta conexión).'
+        : `Mapa alojado (${base.width}×${base.height} px).`;
   $('#mapClear').hidden = !base.local;
   $('#dataInfo').textContent = dataMarkers.length
     ? `${dataMarkers.length} marcadores${dataMeta.source ? ' · fuente: ' + dataMeta.source : ''}${dataMeta.updated ? ' · actualizado ' + dataMeta.updated : ''}.`
@@ -265,7 +305,7 @@ function renderControls() {
   const p = state.prefs;
   $$('#modeSeg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === p.mode));
   $('#tgVisited').checked = p.showVisited; $('#tgBuildings').checked = p.showBuildings; $('#tgHideFound').checked = p.hideFound;
-  $('#tgOutlines').checked = p.outlines; $('#tgOutlines').closest('label').hidden = !fp;
+  $('#tgOutlines').checked = p.outlines; $('#tgOutlines').closest('label').hidden = !fp || base.cleanBuildings === false;
 }
 
 /* ---------------- Ficha de detalle ---------------- */
@@ -310,6 +350,7 @@ function renderDetail() {
       ${missedIds.has(m.id) ? '<div class="warn">Marcaste este sitio como visitado, pero esto sigue sin conseguir.</div>' : ''}
       <button class="btn found-btn${found ? ' on' : ''}" data-act="found">${found ? '✓ Conseguido' : 'Marcar como conseguido'}</button>
       <textarea data-note placeholder="Nota personal…">${esc(state.notes[m.id] || '')}</textarea>
+      ${m.ref && dataMeta.linkTemplate ? `<a class="btn ghost ext-link" href="${esc(dataMeta.linkTemplate.replace('{ref}', m.ref))}" target="_blank" rel="noopener">Ver fotos y detalles en ${esc(dataMeta.source)} ↗</a>` : ''}
       ${m.custom ? '<div class="d-foot"><button class="btn danger" data-act="delete">Eliminar</button></div>' : ''}`;
   }
   el.dataset.for = selected.id || 'new';
@@ -428,7 +469,7 @@ function setTool(t) {
   // Tocar rápido varios edificios seguidos no debe contar como doble toque (zoom).
   map.doubleClickZoom[t === 'explore' ? 'enable' : 'disable']();
   if (t !== 'building') pins.setHover(null);
-  pins.setOutlines(fp, state.prefs.outlines || t === 'building');
+  pins.setOutlines(fp, outlineMode());
   $('#brushbar').hidden = !painting;
   $('#stampbar').hidden = t !== 'building';
   $$('#stampbar [data-stamp]').forEach((b) => b.classList.toggle('on', b.dataset.stamp === stamp));

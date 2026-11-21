@@ -42,7 +42,7 @@ export function placeholderLayer(space) {
  * color; sin silueta se dibuja como un punto de color. `space` (js/geo.js) da la escala unidades -> pantalla.
  */
 export const PinsLayer = L.Layer.extend({
-  initialize(space) { this.space = space; this.items = []; this._screen = []; this.selectedId = null; this.hover = null; this.fp = null; this.outlines = false; },
+  initialize(space) { this.space = space; this.items = []; this._screen = []; this.selectedId = null; this.hover = null; this.fp = null; this.outlines = false; this.outlineMinScale = 0.55; },
   onAdd(map) {
     const pane = map.getPane('pins') || map.createPane('pins');
     pane.style.zIndex = 450; pane.style.pointerEvents = 'none';
@@ -58,8 +58,11 @@ export const PinsLayer = L.Layer.extend({
   setItems(items) { this.items = items; this.draw(); },
   /** Silueta a resaltar bajo el cursor (o null). */
   setHover(poly) { if (poly !== this.hover) { this.hover = poly; this.draw(); } },
-  /** Con `on`, se dibuja el contorno de todos los edificios a la vista (fp = Footprints) para ver qué se puede tocar. */
-  setOutlines(fp, on) { this.fp = fp; if (on !== this.outlines) { this.outlines = on; this.draw(); } },
+  /**
+   * Dibuja todos los edificios a la vista (fp = Footprints). mode: false = no; 'clean' = redibujados en limpio
+   * (relleno plano y borde), para mapas base borrosos; 'hint' = solo un borde fino, para ver qué se puede tocar.
+   */
+  setOutlines(fp, mode) { this.fp = fp; if (mode !== this.outlines) { this.outlines = mode; this.draw(); } },
   draw() {
     const map = this._map; if (!map) return;
     const size = map.getSize(), dpr = window.devicePixelRatio || 1, c = this._c, g = this._g;
@@ -70,7 +73,7 @@ export const PinsLayer = L.Layer.extend({
     L.DomUtil.setPosition(c, map.containerPointToLayerPoint([0, 0]));
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, size.x, size.y);
-    const r = Math.max(6, Math.min(15, 6 + (map.getZoom() - map.getMinZoom()) * 1.6));
+    const r = Math.max(3.5, Math.min(15, 3.5 + (map.getZoom() - map.getMinZoom()) * 2));   // puntos pequeños de lejos, con icono de cerca
     const screen = (this._screen = []);
 
     // Unidades de mapa -> píxeles del contenedor: pantalla = origen + unidades * escala.
@@ -84,7 +87,7 @@ export const PinsLayer = L.Layer.extend({
     // 0) Todos los edificios a la vista, redibujados en limpio (color plano y borde nítido, como el mapa del
     //    juego): el póster es una imagen y de cerca se ve borrosa; esto no pierde calidad con el zoom.
     g.lineJoin = 'round';
-    if (this.outlines && this.fp && s >= 0.55) {
+    if (this.outlines && this.fp && s >= this.outlineMinScale) {
       const fp = this.fp, b = fp.boxes, x0 = -o.x / s, y0 = -o.y / s, x1 = (size.x - o.x) / s, y1 = (size.y - o.y) / s;
       g.beginPath();
       for (let i = 0; i < fp.count; i++) {
@@ -94,8 +97,9 @@ export const PinsLayer = L.Layer.extend({
         for (let j = 2; j < p.length; j += 2) g.lineTo(o.x + p[j] * s, o.y + p[j + 1] * s);
         g.closePath();
       }
-      g.fillStyle = '#dbe6f4'; g.fill();
-      g.strokeStyle = '#7f93b0'; g.lineWidth = 1; g.stroke();
+      if (this.outlines === 'clean') { g.fillStyle = '#dbe6f4'; g.fill(); g.strokeStyle = '#7f93b0'; }
+      else g.strokeStyle = 'rgba(40,60,110,.55)';
+      g.lineWidth = 1; g.stroke();
     }
 
     // 1) Edificios coloreados, por debajo de los marcadores.

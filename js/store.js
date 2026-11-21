@@ -57,15 +57,49 @@ export function saveVisited(str) {
   change('visited');
 }
 
+/* ---- Cambio de mapa base: lo marcado sobre el póster antiguo se pasa a las coordenadas del mapa nuevo ---- */
+let spaceId = null, fromPoster = null, convertVisited = null;
+function convertCoords(d) {
+  for (const k of ['buildings', 'custom']) for (const o of d[k] || []) { o.x = fromPoster.ax * o.x + fromPoster.tx; o.y = fromPoster.ay * o.y + fromPoster.ty; }
+}
+/**
+ * Declara en qué mapa trabaja la app. `T` = { ax, ay, tx, ty } para pasar del póster a este mapa (o nada) y
+ * `convVisited(str)` convierte la zona pintada. Devuelve true si había progreso del póster y se ha convertido.
+ */
+export function setSpace(id, T, convVisited) {
+  spaceId = id; fromPoster = T || null; convertVisited = convVisited;
+  const cur = state.space || 'poster';
+  if (cur === id) { state.space = id; return false; }
+  const had = state.buildings.length + state.custom.length > 0 || !!loadVisited();
+  if (cur === 'poster' && fromPoster) {
+    convertCoords(state);
+    const v = convVisited(loadVisited());
+    try { v ? localStorage.setItem(KEY_VISITED, v) : localStorage.removeItem(KEY_VISITED); } catch {}
+  }
+  state.space = id;
+  if (had) state.mod = Date.now();
+  flush();
+  return had && cur === 'poster' && !!fromPoster;
+}
+/** Un documento de otro dispositivo que aún estaba en el póster se convierte antes de usarlo. */
+function normalizeDoc(doc) {
+  const cur = doc.space || 'poster';
+  if (!spaceId || cur === spaceId) return doc;
+  if (cur === 'poster' && fromPoster) { convertCoords(doc); doc.visited = convertVisited(doc.visited); }
+  doc.space = spaceId;
+  return doc;
+}
+
 /* ---- Sincronización: el progreso (sin ajustes de vista) como un único documento ---- */
 const SYNCED = ['found', 'notes', 'buildings', 'custom', 'checklist'];
 export function syncDoc() {
-  const doc = { app: 'leonida100-sync', mod: state.mod || 0, visited: loadVisited() };
+  const doc = { app: 'leonida100-sync', mod: state.mod || 0, space: state.space || 'poster', visited: loadVisited() };
   for (const k of SYNCED) doc[k] = state[k];
   return doc;
 }
 /** Sustituye el progreso local por el de otro dispositivo. */
 export function applySync(doc) {
+  normalizeDoc(doc);
   const b = blank();
   for (const k of SYNCED) state[k] = doc[k] ?? b[k];
   state.mod = doc.mod || 0;
@@ -79,6 +113,7 @@ export function applySync(doc) {
  * devuelve la rejilla resultante serializada.
  */
 export function mergeSync(doc, unionVisited) {
+  normalizeDoc(doc);
   const byId = (a, b) => { const m = new Map(); for (const x of [...(b || []), ...(a || [])]) m.set(x.id, x); return [...m.values()]; };
   state.found = { ...doc.found, ...state.found };
   state.notes = { ...doc.notes, ...state.notes };

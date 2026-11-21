@@ -1,57 +1,730 @@
 {
-  "_doc": "Categorías de marcadores. Los tipos del juego salen de la lista del 100% (ver data/checklist.json); los nombres en español son traducción propia, con el nombre oficial en inglés entre paréntesis. tracked=false => no cuenta para el progreso ni para «Olvidos».",
-  "groups": [
-    { "id": "own", "name": "Lo que encuentro yo" },
-    { "id": "robberies", "name": "Robos" },
-    { "id": "collect", "name": "Coleccionables" },
-    { "id": "activities", "name": "Actividades" },
-    { "id": "stunts", "name": "Acrobacias" },
-    { "id": "world", "name": "Mundo" }
-  ],
-  "categories": [
-    { "id": "lootitem", "group": "own", "name": "Botín / objeto robable", "icon": "💰", "color": "#7ae582" },
-    { "id": "safe", "group": "own", "name": "Caja fuerte", "icon": "🔐", "color": "#c8b6ff" },
-    { "id": "interior", "group": "own", "name": "Interior accesible", "icon": "🚪", "color": "#e0aaff", "tracked": false },
-    { "id": "random", "group": "own", "name": "Evento aleatorio", "icon": "❗", "color": "#ff4fa3" },
-    { "id": "secret", "group": "own", "name": "Secreto / easter egg", "icon": "👽", "color": "#80ffdb" },
-    { "id": "poi", "group": "own", "name": "Punto de interés", "icon": "📍", "color": "#ced4da", "tracked": false },
-
-    { "id": "gangop", "group": "robberies", "name": "Operación de banda (Gang Operation)", "icon": "💀", "color": "#ffd23f" },
-    { "id": "bank", "group": "robberies", "name": "Banco (Bank Job)", "icon": "🏦", "color": "#52b788" },
-    { "id": "vault", "group": "robberies", "name": "Cámara acorazada (Vault)", "icon": "🛅", "color": "#2d6a4f" },
-    { "id": "payday", "group": "robberies", "name": "Prestamista (Payday Loan)", "icon": "🤝", "color": "#95d5b2" },
-    { "id": "smash", "group": "robberies", "name": "Smash 'N' Grab (empeños / joyería)", "icon": "💎", "color": "#4cc9f0" },
-    { "id": "stickup", "group": "robberies", "name": "Atraco a tienda (Stick Up)", "icon": "🏪", "color": "#ff9f1c" },
-
-    { "id": "card", "group": "collect", "name": "Carta coleccionable", "icon": "🃏", "color": "#f1faee" },
-    { "id": "waink", "group": "collect", "name": "Lugar WAiNK", "icon": "📱", "color": "#b388eb" },
-    { "id": "underwater", "group": "collect", "name": "Descubrimiento submarino", "icon": "⚓", "color": "#48cae4" },
-    { "id": "magazine", "group": "collect", "name": "Revista, libro o cómic", "icon": "📖", "color": "#e9c46a" },
-    { "id": "bookswap", "group": "collect", "name": "Intercambio de libros (Book Swap)", "icon": "📚", "color": "#d4a373" },
-    { "id": "meditation", "group": "collect", "name": "Punto de meditación", "icon": "🧘", "color": "#cdb4db" },
-    { "id": "flamingo", "group": "collect", "name": "Flamenco de cocaína", "icon": "🦩", "color": "#ff8fab" },
-    { "id": "playlist", "group": "collect", "name": "Playlist única", "icon": "🎵", "color": "#a0c4ff" },
-    { "id": "watch", "group": "collect", "name": "Reloj de lujo", "icon": "⌚", "color": "#ffd166" },
-    { "id": "tattoo", "group": "collect", "name": "Revista de tatuajes", "icon": "🖋️", "color": "#adb5bd" },
-
-    { "id": "race", "group": "activities", "name": "Carrera", "icon": "🏁", "color": "#e9ecef" },
-    { "id": "racechallenge", "group": "activities", "name": "Desafío de carrera", "icon": "⏱️", "color": "#dee2e6" },
-    { "id": "shooting", "group": "activities", "name": "Campo de tiro", "icon": "🎯", "color": "#ff6b6b" },
-    { "id": "drone", "group": "activities", "name": "Carreras de dron", "icon": "🛸", "color": "#90e0ef" },
-    { "id": "hoop", "group": "activities", "name": "Canasta de baloncesto", "icon": "🏀", "color": "#f4a261" },
-    { "id": "pool", "group": "activities", "name": "Rival de billar", "icon": "🎱", "color": "#6c757d" },
-    { "id": "minigolf", "group": "activities", "name": "Minigolf", "icon": "⛳", "color": "#74c69d" },
-    { "id": "arcade", "group": "activities", "name": "Videojuego / recreativa", "icon": "🕹️", "color": "#f72585" },
-    { "id": "mission", "group": "activities", "name": "Misión opcional / desconocido", "icon": "❓", "color": "#9d4edd" },
-
-    { "id": "stuntjump", "group": "stunts", "name": "Salto acrobático (Stunt Jump)", "icon": "🛞", "color": "#fb8500" },
-    { "id": "bridge", "group": "stunts", "name": "Bajo el puente (Under the Bridge)", "icon": "🌉", "color": "#8ecae6" },
-    { "id": "knife", "group": "stunts", "name": "Vuelo en cuchillo (Knife Flight)", "icon": "✈️", "color": "#219ebc" },
-    { "id": "basejump", "group": "stunts", "name": "Salto base (Base Jump)", "icon": "🪂", "color": "#ffb703" },
-
-    { "id": "standout", "group": "world", "name": "Vehículo destacado (Standout)", "icon": "🚗", "color": "#4cc9f0", "tracked": false },
-    { "id": "ammu", "group": "world", "name": "Ammu-Nation", "icon": "🔫", "color": "#e63946", "tracked": false },
-    { "id": "fence", "group": "world", "name": "Perista", "icon": "💵", "color": "#80b918", "tracked": false },
-    { "id": "property", "group": "world", "name": "Propiedad / piso franco", "icon": "🏠", "color": "#52b788", "tracked": false }
-  ]
+ "_doc": "Generado por tools/import-mapgenie.mjs. El grupo «own» son las categorías para los marcadores que añade el usuario; el resto vienen de MapGenie (nombres en inglés, como en su mapa). tracked=false => no cuenta para el progreso ni para «Olvidos»; defaultHidden => empieza oculta.",
+ "groups": [
+  {
+   "id": "own",
+   "name": "Lo que encuentro yo"
+  },
+  {
+   "id": "g27134",
+   "name": "Lugares WAiNK"
+  },
+  {
+   "id": "g27137",
+   "name": "Exploración"
+  },
+  {
+   "id": "g27138",
+   "name": "Cartas coleccionables"
+  },
+  {
+   "id": "g27123",
+   "name": "Deportes"
+  },
+  {
+   "id": "g27125",
+   "name": "Actividades"
+  },
+  {
+   "id": "g27127",
+   "name": "Acrobacias"
+  },
+  {
+   "id": "g27136",
+   "name": "Carreras"
+  },
+  {
+   "id": "g27140",
+   "name": "Operaciones ilegales"
+  },
+  {
+   "id": "g27128",
+   "name": "Puntos de interés"
+  },
+  {
+   "id": "g27129",
+   "name": "Robos"
+  },
+  {
+   "id": "g27130",
+   "name": "Vehículos"
+  },
+  {
+   "id": "g27131",
+   "name": "Estilo"
+  },
+  {
+   "id": "g27132",
+   "name": "Comida y bebida"
+  }
+ ],
+ "categories": [
+  {
+   "id": "lootitem",
+   "group": "own",
+   "name": "Botín / objeto robable",
+   "icon": "💰",
+   "color": "#7ae582"
+  },
+  {
+   "id": "safe",
+   "group": "own",
+   "name": "Caja fuerte",
+   "icon": "🔐",
+   "color": "#c8b6ff"
+  },
+  {
+   "id": "interior",
+   "group": "own",
+   "name": "Interior accesible",
+   "icon": "🚪",
+   "color": "#e0aaff",
+   "tracked": false
+  },
+  {
+   "id": "random",
+   "group": "own",
+   "name": "Evento aleatorio",
+   "icon": "❗",
+   "color": "#ff4fa3"
+  },
+  {
+   "id": "secret",
+   "group": "own",
+   "name": "Secreto / easter egg",
+   "icon": "👽",
+   "color": "#80ffdb"
+  },
+  {
+   "id": "poi",
+   "group": "own",
+   "name": "Punto de interés",
+   "icon": "📍",
+   "color": "#ced4da",
+   "tracked": false
+  },
+  {
+   "id": "mg29065",
+   "group": "g27134",
+   "name": "Landmark",
+   "icon": "🗽",
+   "color": "#58aae4"
+  },
+  {
+   "id": "mg29066",
+   "group": "g27134",
+   "name": "Curiosity",
+   "icon": "🔍",
+   "color": "#6ea3e7"
+  },
+  {
+   "id": "mg29067",
+   "group": "g27134",
+   "name": "Sculpture",
+   "icon": "🗿",
+   "color": "#84a1eb"
+  },
+  {
+   "id": "mg29093",
+   "group": "g27137",
+   "name": "Book Swap",
+   "icon": "📚",
+   "color": "#e45870"
+  },
+  {
+   "id": "mg29120",
+   "group": "g27137",
+   "name": "Magazine",
+   "icon": "📖",
+   "color": "#e76e70"
+  },
+  {
+   "id": "mg29143",
+   "group": "g27137",
+   "name": "Unique Playlist",
+   "icon": "🎵",
+   "color": "#eb9284"
+  },
+  {
+   "id": "mg29144",
+   "group": "g27137",
+   "name": "1010 Mural",
+   "icon": "📸",
+   "color": "#e48058"
+  },
+  {
+   "id": "mg29112",
+   "group": "g27138",
+   "name": "Jack of Hearts",
+   "icon": "🃏",
+   "color": "#e49e58"
+  },
+  {
+   "id": "mg29113",
+   "group": "g27138",
+   "name": "Delights",
+   "icon": "🃏",
+   "color": "#e7bd6e"
+  },
+  {
+   "id": "mg29114",
+   "group": "g27138",
+   "name": "Nine1Nine",
+   "icon": "🃏",
+   "color": "#ebd684"
+  },
+  {
+   "id": "mg29011",
+   "group": "g27123",
+   "name": "Basketball Hoop",
+   "icon": "🏀",
+   "color": "#b558e4"
+  },
+  {
+   "id": "mg29013",
+   "group": "g27123",
+   "name": "Golf Course",
+   "icon": "⛳",
+   "color": "#d16ee7"
+  },
+  {
+   "id": "mg29015",
+   "group": "g27123",
+   "name": "Mini-Golf Course",
+   "icon": "⛳",
+   "color": "#e884eb"
+  },
+  {
+   "id": "mg29061",
+   "group": "g27123",
+   "name": "Pool Table",
+   "icon": "🎱",
+   "color": "#e458d4"
+  },
+  {
+   "id": "mg29017",
+   "group": "g27125",
+   "name": "Shooting Range",
+   "icon": "🎯",
+   "color": "#e47b58"
+  },
+  {
+   "id": "mg29028",
+   "group": "g27125",
+   "name": "Arcade Machine",
+   "icon": "🕹️",
+   "color": "#e79f6e"
+  },
+  {
+   "id": "mg29099",
+   "group": "g27125",
+   "name": "Fishing Hotspot",
+   "icon": "🎣",
+   "color": "#ebbd84"
+  },
+  {
+   "id": "mg29019",
+   "group": "g27127",
+   "name": "Stunt Jump",
+   "icon": "🛞",
+   "color": "#9258e4"
+  },
+  {
+   "id": "mg29057",
+   "group": "g27127",
+   "name": "Base Jump",
+   "icon": "🪂",
+   "color": "#b36ee7"
+  },
+  {
+   "id": "mg29059",
+   "group": "g27127",
+   "name": "Knife Flight",
+   "icon": "✈️",
+   "color": "#ce84eb"
+  },
+  {
+   "id": "mg29060",
+   "group": "g27127",
+   "name": "Under the Bridge",
+   "icon": "🌉",
+   "color": "#d158e4"
+  },
+  {
+   "id": "mg29084",
+   "group": "g27136",
+   "name": "Racing Introduction",
+   "icon": "🏁",
+   "color": "#58e4b5"
+  },
+  {
+   "id": "mg29085",
+   "group": "g27136",
+   "name": "Racing Challenge",
+   "icon": "⏱️",
+   "color": "#6ee7d1"
+  },
+  {
+   "id": "mg29086",
+   "group": "g27136",
+   "name": "Thrillbilly Mud Club",
+   "icon": "🏁",
+   "color": "#84ebe8"
+  },
+  {
+   "id": "mg29087",
+   "group": "g27136",
+   "name": "Animal Crackers",
+   "icon": "🏁",
+   "color": "#58d4e4"
+  },
+  {
+   "id": "mg29088",
+   "group": "g27136",
+   "name": "Hit 'n' Run VC",
+   "icon": "🏁",
+   "color": "#6ec7e7"
+  },
+  {
+   "id": "mg29089",
+   "group": "g27136",
+   "name": "Hamlet Boone Speedway",
+   "icon": "🏁",
+   "color": "#84c0eb"
+  },
+  {
+   "id": "mg29090",
+   "group": "g27136",
+   "name": "Ambrosia Raceway",
+   "icon": "🏁",
+   "color": "#5895e4"
+  },
+  {
+   "id": "mg29091",
+   "group": "g27136",
+   "name": "Gellhorn Raceway",
+   "icon": "🏁",
+   "color": "#6e91e7"
+  },
+  {
+   "id": "mg29142",
+   "group": "g27136",
+   "name": "Top Fun Drones",
+   "icon": "🛸",
+   "color": "#8492eb"
+  },
+  {
+   "id": "mg29133",
+   "group": "g27140",
+   "name": "Kingfishers",
+   "icon": "💀",
+   "color": "#e4cd58"
+  },
+  {
+   "id": "mg29134",
+   "group": "g27140",
+   "name": "Kolt & Associates",
+   "icon": "💀",
+   "color": "#e7e56e"
+  },
+  {
+   "id": "mg29135",
+   "group": "g27140",
+   "name": "M7",
+   "icon": "💀",
+   "color": "#ddeb84"
+  },
+  {
+   "id": "mg29136",
+   "group": "g27140",
+   "name": "La Polilla Negra",
+   "icon": "💀",
+   "color": "#bce458"
+  },
+  {
+   "id": "mg29137",
+   "group": "g27140",
+   "name": "Final Chapter",
+   "icon": "💀",
+   "color": "#b3e76e"
+  },
+  {
+   "id": "mg29138",
+   "group": "g27140",
+   "name": "San4San",
+   "icon": "💀",
+   "color": "#afeb84"
+  },
+  {
+   "id": "mg29139",
+   "group": "g27140",
+   "name": "PTT Youngin$",
+   "icon": "💀",
+   "color": "#7ee458"
+  },
+  {
+   "id": "mg29140",
+   "group": "g27140",
+   "name": "The Guardia Brothers",
+   "icon": "💀",
+   "color": "#7ce76e"
+  },
+  {
+   "id": "mg29141",
+   "group": "g27140",
+   "name": "Criminals",
+   "icon": "💀",
+   "color": "#84eb88"
+  },
+  {
+   "id": "mg29021",
+   "group": "g27128",
+   "name": "ATM",
+   "icon": "🏧",
+   "color": "#92e458",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29030",
+   "group": "g27128",
+   "name": "Gym",
+   "icon": "🏋️",
+   "color": "#8fe76e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29031",
+   "group": "g27128",
+   "name": "Club",
+   "icon": "🪩",
+   "color": "#90eb84",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29041",
+   "group": "g27128",
+   "name": "Ammu-Nation",
+   "icon": "🔫",
+   "color": "#58e45d",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29022",
+   "group": "g27129",
+   "name": "Bank",
+   "icon": "🏦",
+   "color": "#58d8e4"
+  },
+  {
+   "id": "mg29023",
+   "group": "g27129",
+   "name": "Big Bank",
+   "icon": "🏛️",
+   "color": "#6ecbe7"
+  },
+  {
+   "id": "mg29024",
+   "group": "g27129",
+   "name": "Payday Loans",
+   "icon": "🤝",
+   "color": "#84c4eb"
+  },
+  {
+   "id": "mg29025",
+   "group": "g27129",
+   "name": "Low-End Jewelry Store",
+   "icon": "💍",
+   "color": "#5899e4"
+  },
+  {
+   "id": "mg29026",
+   "group": "g27129",
+   "name": "High-End Jewelry Store",
+   "icon": "💎",
+   "color": "#6e95e7"
+  },
+  {
+   "id": "mg29027",
+   "group": "g27129",
+   "name": "Pawn Shop",
+   "icon": "🪙",
+   "color": "#8495eb"
+  },
+  {
+   "id": "mg29037",
+   "group": "g27129",
+   "name": "ATM (Towable)",
+   "icon": "🏧",
+   "color": "#585be4"
+  },
+  {
+   "id": "mg29051",
+   "group": "g27129",
+   "name": "Convenience Store",
+   "icon": "🏪",
+   "color": "#7e6ee7"
+  },
+  {
+   "id": "mg29052",
+   "group": "g27129",
+   "name": "Fast Food",
+   "icon": "🍔",
+   "color": "#a184eb"
+  },
+  {
+   "id": "mg29054",
+   "group": "g27129",
+   "name": "Liquor Store",
+   "icon": "🍾",
+   "color": "#9558e4"
+  },
+  {
+   "id": "mg29082",
+   "group": "g27129",
+   "name": "Contact",
+   "icon": "📞",
+   "color": "#b56ee7",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29083",
+   "group": "g27129",
+   "name": "Safe",
+   "icon": "🔐",
+   "color": "#d084eb"
+  },
+  {
+   "id": "mg29029",
+   "group": "g27130",
+   "name": "Pay 'N' Spray",
+   "icon": "🎨",
+   "color": "#e458b5",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29032",
+   "group": "g27130",
+   "name": "Mod Shop",
+   "icon": "🔧",
+   "color": "#e76ead",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29033",
+   "group": "g27130",
+   "name": "Gas Station",
+   "icon": "⛽",
+   "color": "#eb84aa",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29034",
+   "group": "g27130",
+   "name": "Car Wash",
+   "icon": "🧽",
+   "color": "#e45877",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29035",
+   "group": "g27130",
+   "name": "Electric Charger",
+   "icon": "🔌",
+   "color": "#e76e76",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29036",
+   "group": "g27130",
+   "name": "Bus Stop",
+   "icon": "🚌",
+   "color": "#eb8d84",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29038",
+   "group": "g27130",
+   "name": "Train Station",
+   "icon": "🚆",
+   "color": "#e47958",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29039",
+   "group": "g27130",
+   "name": "Ferry Terminal",
+   "icon": "⛴️",
+   "color": "#e79d6e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29040",
+   "group": "g27130",
+   "name": "Rental Vehicle",
+   "icon": "🔑",
+   "color": "#ebbb84",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29062",
+   "group": "g27130",
+   "name": "Purchasable Garage",
+   "icon": "🅿️",
+   "color": "#e4b858",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29063",
+   "group": "g27130",
+   "name": "Garage",
+   "icon": "🅿️",
+   "color": "#e7d36e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29095",
+   "group": "g27130",
+   "name": "Standout Vehicle",
+   "icon": "🚗",
+   "color": "#ebe984"
+  },
+  {
+   "id": "mg29096",
+   "group": "g27130",
+   "name": "Randy Vehicle",
+   "icon": "🚙",
+   "color": "#d1e458"
+  },
+  {
+   "id": "mg29097",
+   "group": "g27130",
+   "name": "Moses Vehicle",
+   "icon": "🚐",
+   "color": "#c5e76e"
+  },
+  {
+   "id": "mg29042",
+   "group": "g27131",
+   "name": "Casual & Street",
+   "icon": "👕",
+   "color": "#e45858",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29043",
+   "group": "g27131",
+   "name": "Sportswear",
+   "icon": "🎽",
+   "color": "#e7806e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29044",
+   "group": "g27131",
+   "name": "Formal",
+   "icon": "👔",
+   "color": "#eba384",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29045",
+   "group": "g27131",
+   "name": "Souvenir & Swimwear",
+   "icon": "🩱",
+   "color": "#e49758",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29046",
+   "group": "g27131",
+   "name": "Thrift",
+   "icon": "🧥",
+   "color": "#e7b76e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29047",
+   "group": "g27131",
+   "name": "Footwear",
+   "icon": "👟",
+   "color": "#ebd184",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29048",
+   "group": "g27131",
+   "name": "Hair & Beauty",
+   "icon": "💈",
+   "color": "#e4d658",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29049",
+   "group": "g27131",
+   "name": "Tattoos",
+   "icon": "🖋️",
+   "color": "#e1e76e",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29050",
+   "group": "g27131",
+   "name": "Electronics",
+   "icon": "📱",
+   "color": "#d6eb84",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29053",
+   "group": "g27132",
+   "name": "Cafes & Takeout",
+   "icon": "☕",
+   "color": "#58e470",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29055",
+   "group": "g27132",
+   "name": "Bar",
+   "icon": "🍺",
+   "color": "#6ee795",
+   "tracked": false,
+   "defaultHidden": true
+  },
+  {
+   "id": "mg29056",
+   "group": "g27132",
+   "name": "Street Food",
+   "icon": "🌭",
+   "color": "#84ebb4",
+   "tracked": false,
+   "defaultHidden": true
+  }
+ ]
 }
