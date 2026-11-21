@@ -28,7 +28,7 @@ for (let z = Z; z >= 0; z--) {
       const tw = Math.min(T, w - x * T), th = Math.min(T, h - y * T);
       await level().extract({ left: x * T, top: y * T, width: tw, height: th })
         .extend({ right: T - tw, bottom: T - th, background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .webp({ quality: 82 }).toFile(join(OUT, String(z), String(x), `${y}.webp`));
+        .webp({ quality: 90 }).toFile(join(OUT, String(z), String(x), `${y}.webp`));
       total++;
     }
   }

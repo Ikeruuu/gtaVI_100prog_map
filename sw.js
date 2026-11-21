@@ -7,7 +7,7 @@ const CORE = [
   './', 'index.html', 'css/app.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/geo.js', 'js/grid.js', 'js/layers.js', 'js/mapimage.js',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css',
-  'data/map.json', 'data/categories.json', 'data/markers.json',
+  'data/map.json', 'data/categories.json', 'data/markers.json', 'data/checklist.json',
   'icons/icon.svg', 'icons/icon-192.png',
 ];
 

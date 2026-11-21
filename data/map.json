@@ -1,8 +1,8 @@
 {
   "_doc": "Mapa base. type: 'none' (rejilla de marcador de posición), 'image' (una sola imagen) o 'tiles' (pirámide generada con `npm run tiles`). width/height = píxeles de la imagen de referencia a resolución completa.",
-  "type": "none",
-  "url": "",
-  "width": 8192,
-  "height": 8192,
-  "attribution": ""
+  "type": "tiles",
+  "url": "tiles/{z}/{x}/{y}.webp",
+  "width": 5775,
+  "height": 7900,
+  "attribution": "Mapa: póster oficial «The Great State of Leonida» © Rockstar Games"
 }

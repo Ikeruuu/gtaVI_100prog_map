@@ -74,6 +74,19 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
 .cat em { font-style: normal; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .cat.done em { color: var(--teal); }
 
+.req { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--line); }
+.req-check { width: 24px; height: 24px; flex: none; border-radius: 50%; border: 2px solid var(--line); background: none; color: #06281c; font-weight: 800; font-size: 13px; padding: 0; }
+.req.done .req-check { background: var(--teal); border-color: var(--teal); }
+.req-body { flex: 1; min-width: 0; }
+.req-body b { display: block; font-weight: 600; }
+.req.done .req-body b { color: var(--muted); text-decoration: line-through; }
+.req-body small { color: var(--muted); display: block; }
+.req input { width: 78px; flex: none; text-align: right; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; outline: none; }
+.req input:focus { border-color: var(--pink); }
+.sec-count { font-variant-numeric: tabular-nums; }
+#checkSource { margin-top: 14px; }
+#checkSource a { color: var(--text); }
+
 .list { display: grid; gap: 4px; }
 .list:empty { display: none; }
 #searchResults { margin-top: 8px; }
@@ -181,3 +194,5 @@ input[type=checkbox] { accent-color: var(--pink); width: 16px; height: 16px; mar
   #toast { bottom: calc(132px + var(--safe-b)); }
   .leaflet-control-zoom { display: none; }
 }
+
+.leaflet-control-attribution { font-size: 10px; max-width: 70vw; }

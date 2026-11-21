@@ -12,16 +12,21 @@ npm run dev        # http://localhost:8080
 
 O publicarlo con GitHub Pages (rama y carpeta raíz): es una web estática, sin build.
 
-## Poner el mapa del juego
+## El mapa
 
-- **Rápido, solo para ti:** pestaña «Datos» → «Cargar imagen del mapa…». La imagen se guarda en ese dispositivo.
-- **Alojado, con zoom fluido:** `npm install && npm run tiles -- mapa.png "Atribución"` genera `tiles/` y
-  actualiza `data/map.json`.
+Viene con el póster oficial «The Great State of Leonida» de Rockstar (5775×7900 px) troceado en `tiles/`.
+Para cambiarlo por otra imagen:
+
+- **Solo en tu dispositivo:** pestaña «Datos» → «Cargar imagen del mapa…».
+- **Para todos:** `npm install && npm run tiles -- mapa.png "Atribución"` regenera `tiles/` y `data/map.json`.
+
+Si cambias a una imagen con otro encuadre, lo que ya tengas marcado se descoloca.
 
 ## Datos
 
-- `data/markers.json`: marcadores del juego (vacío hasta importar datos verificados).
+- `data/checklist.json`: los 35 requisitos del 100% (fuente: guía de PowerPyx, 18-nov-2026).
 - `data/categories.json`: categorías y colores.
+- `data/markers.json`: marcadores del juego (vacío hasta importar posiciones verificadas).
 - Tu progreso se guarda en el navegador. «Exportar» / «Importar» lo pasa de un dispositivo a otro.
 
 Proyecto de fan sin relación con Rockstar Games ni Take-Two. Grand Theft Auto es marca de sus dueños.

@@ -32,6 +32,7 @@
 
     <nav class="tabs" id="tabs">
       <button data-tab="layers" class="on">Capas</button>
+      <button data-tab="check">100%</button>
       <button data-tab="missed">Olvidos <span id="missedBadge" class="badge" hidden></span></button>
       <button data-tab="data">Datos</button>
     </nav>
@@ -45,6 +46,12 @@
         <label><input type="checkbox" id="tgHideFound"> Ocultar conseguidos</label>
       </div>
       <div id="catList"></div>
+    </div>
+
+    <div class="tab" id="tab-check" hidden>
+      <p class="hint">Los requisitos que pide el juego para el 100%. Apunta lo que llevas (lo ves en el menú PROGRESO del juego) o pulsa el círculo para darlo por hecho.</p>
+      <div id="checkList"></div>
+      <p class="hint" id="checkSource"></p>
     </div>
 
     <div class="tab" id="tab-missed" hidden>

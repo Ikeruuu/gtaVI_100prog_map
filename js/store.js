@@ -10,6 +10,7 @@ const blank = () => ({
   buildings: [],  // { id, x, y, status, note, ts }  edificios marcados a mano
   custom: [],     // { id, cat, x, y, title, desc }  marcadores propios
   hidden: [],     // ids de categoría ocultas
+  checklist: {},  // id de requisito del 100% -> cantidad que llevas
   prefs: { mode: 'all', hideFound: false, showVisited: true, showBuildings: true },
 });
 

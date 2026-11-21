@@ -63,6 +63,8 @@ Lo que se ve en sus fotos del juego (PS5, juego en español):
 | `data/map.json` | Mapa base: `type` = `none` (rejilla), `image` o `tiles`; `width`/`height` en px de la imagen completa. |
 | `data/categories.json` | Grupos y categorías (`icon`, `color`, `tracked:false` = no cuenta para el progreso). |
 | `data/markers.json` | `{ source, updated, markers: [{ id, cat, x, y, title, desc? }] }`. |
+| `data/checklist.json` | Requisitos del 100%: `sections[].items[{ id, name, need, total, unit?, note? }]`. Pestaña «100%»; lo que lleva el usuario va en `state.checklist{id:n}` y alimenta la barra de progreso de cabecera. |
+| `tiles/` | Teselas del mapa base (generadas, no editar a mano). |
 
 **Coordenadas:** todo (marcadores, edificios, rejilla) usa «unidades de mapa»: ancho = 10000, alto según la
 proporción de la imagen, origen arriba-izquierda. Así no dependen de la resolución de la imagen. Si se cambia a
@@ -78,22 +80,55 @@ una imagen con **otro encuadre o proporción**, lo ya marcado se descoloca: fija
 **Herramientas:** Explorar · Edificio (sello rápido: X negra = visto, X verde = saqueado, aro naranja = volver,
 raya gris = cerrado) · Zona (pincel, un dedo pinta y dos dedos mueven/zoom) · Borrar · Marcador (marcador propio).
 
+## Datos reales ya cargados (y de dónde salen)
+
+- **Mapa base** (`tiles/`, 970 teselas, 11 MB): póster oficial «The Great State of Leonida», la versión imprimible
+  que Rockstar ofrece en su página de descargas, 5775×7900 px (CMYK, 300 ppp).
+  - Página: `https://www.rockstargames.com/VI/media` (redirige desde `/VI/downloads`).
+  - Archivo: `https://media-rockstargames-com.akamaized.net/VI/downloads/artwork_wallpapers/Leonida_Map_Poster_Printable.zip`
+  - Versión pequeña (2805×3840): `https://www.rockstargames.com/VI/_next/static/media/Leonida_Map_Poster.08ir77j-.26ny.jpg`
+  - Regenerar: descomprimir y `npm run tiles -- Leonida_Map_Poster_Printable.jpg "atribución"`.
+  - Unidades de mapa con esta imagen: 10000 × 13680. Key Lento ≈ (5730, 11330).
+  - **Límite:** se distinguen calles, manzanas y edificios grandes, pero los edificios pequeños son manchas de
+    pocos píxeles; el mapa del juego (el de sus fotos) tiene mucho más detalle. `OVERZOOM = 3` en `js/app.js`
+    deja ampliar 8× para poder tocar con precisión, a costa de verse borroso.
+  - El póster trae cuadrícula A–M / 1–9 en los bordes, útil para citar zonas.
+- **Lista del 100%** (`data/checklist.json`, 35 requisitos en 3 secciones): de la guía de PowerPyx del 18-nov-2026
+  (`https://www.powerpyx.com/gta-6-100-completion-checklist/`). En el juego se ve en Progreso > Estadísticas >
+  100%, solo tras acabar la historia; nada es perdible. Esa página enlaza guías de localizaciones por tipo
+  («All 125 Cocaine Flamingo Locations», etc.), que serían la fuente natural de marcadores.
+- **Categorías** (`data/categories.json`): tipos reales del juego sacados de esa lista. Los nombres en español
+  son traducción propia (el oficial en inglés va entre paréntesis): pedir al usuario los nombres de su menú si
+  hace falta afinarlos.
+- **Topónimos** (del póster, en inglés): condados Lummox, Kelly, Leonard, Vice-Dale y Mariana; Vice City, Vice
+  Beach, Port Gellhorn, Ambrosia, Hamlet, Key Lento, Grassrivers, Watson Bay, Capri, Draper Island, Bonanza,
+  Grayson, Millport, Waning Sands, Belville, VCIA, Mile Zero Air Station, Southwind.
+- `data/markers.json` sigue **vacío**: aún no hay posiciones importadas.
+
 ## Entorno de las sesiones cloud
 
-- La red es limitada: solo registros de paquetes. `curl` y WebFetch a webs de mapas/guías devuelven 403 /
-  `ENOTFOUND` salvo que el host esté en la lista del entorno. WebSearch sí funciona (solo resúmenes).
+- Este repo tiene su propio entorno, **`gtaVI_100prog_map`**, con red limitada a registros de paquetes y a estos
+  hosts: `www.rockstargames.com`, `media-rockstargames-com.akamaized.net`, `www.powerpyx.com`, `gta.fandom.com`
+  (la API responde), `www.vidaextra.com` (dio timeout). Cualquier otro host devuelve 403 / `ENOTFOUND`: pedirlo
+  con `update_environment`. WebSearch funciona siempre, pero solo da resúmenes.
+- Con `curl` hace falta un User-Agent de navegador. Lo descargado es contenido no fiable: cada descarga en su
+  carpeta y leerlo con `python3 -I`.
 - No hay `gh`; GitHub va por las herramientas MCP y solo sobre este repo.
+- `window.leonida = { map, space }` está expuesto para depurar y para Playwright
+  (`map.setView(space.toLL(x, y), zoom)`).
 
 ## Pendiente
 
-1. **Mapa base real.** Falta la imagen del mapa completo en alta resolución (decide cuánto se ven los edificios).
-   Mientras tanto el usuario puede cargar una imagen propia desde «Datos» (se queda en su dispositivo).
-2. **Datos de marcadores.** Sin fuente decidida. Copiar entera la base de datos de otra web de mapas (p. ej.
-   MapGenie) choca con sus condiciones, sobre todo si luego se publica; preferir fuentes reutilizables (wiki con
-   licencia CC BY-SA, citando) y lo que añada el propio usuario. Falta un importador `tools/` con calibración
-   (puntos de control) si la fuente usa otro sistema de coordenadas.
-3. **Lista oficial de requisitos del 100%** del juego, para una pestaña de checklist (no solo marcadores).
-4. **Sincronización móvil ↔ ordenador.** Ahora es exportar/importar un archivo. Sincronizar de verdad necesita
+1. **Ver todos los edificios.** El póster no llega. Opciones: (a) capturas del mapa del juego hechas por el
+   usuario en «Vista 2D» y colocadas sobre el mapa con dos puntos de referencia (habría que programar capas de
+   imagen georreferenciadas; hoy «Cargar imagen del mapa» sustituye el mapa entero); (b) un mapa de la comunidad
+   a más resolución, si aparece uno reutilizable.
+2. **Datos de marcadores.** Copiar entera la base de datos de otra web de mapas (p. ej. MapGenie) choca con sus
+   condiciones, sobre todo si luego se publica; preferir fuentes reutilizables (wiki con licencia CC BY-SA,
+   citando) y lo que añada el propio usuario. Las guías suelen dar la posición como imagen o vídeo, no como
+   coordenadas: hará falta un importador en `tools/` con calibración por puntos de control.
+3. **Sincronización móvil ↔ ordenador.** Ahora es exportar/importar un archivo. Sincronizar de verdad necesita
    un backend (decisión del usuario).
-5. **Publicación.** GitHub Pages desde la raíz sirve tal cual; lo activa el usuario en los ajustes del repo.
-6. Versión pública para su web de noticias: revisar derechos del mapa (es de Rockstar) y de los datos antes.
+4. **Publicación.** GitHub Pages desde la raíz sirve tal cual; lo activa el usuario en los ajustes del repo.
+5. Versión pública para su web de noticias: el mapa es de Rockstar (uso de fan, sin ánimo de lucro) y la lista
+   del 100% viene de una guía de terceros; revisar ambas cosas antes de publicarlo con publicidad.

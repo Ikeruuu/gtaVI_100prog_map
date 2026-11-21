@@ -18,19 +18,25 @@ const BUILDING_STATUS = {
   locked: { icon: '🔒', label: 'Cerrado', color: '#6c757d', shape: 'dash' },
 };
 const VISITED_STATUSES = new Set(['clear', 'looted']);
+const OVERZOOM = 3;         // niveles de zoom por encima de la resolución real, para poder tocar edificios pequeños
+const money = (n) => '$' + Number(n).toLocaleString('es-ES');
 
 let map, space, grid, pins, visitedOverlay;
 let groups = [], cats = [], catById = new Map();
 let dataMarkers = [], dataMeta = {}, markerIndex = new Map(), base = {};
 let missed = [], missedIds = new Set();
+let checklist = { sections: [] }, reqs = [];
 let tool = 'explore', brush = 22, selected = null;
 let stamp = 'clear';        // estado con el que se marcan los edificios al tocar
+let lastCat = 'lootitem';   // categoría propuesta al añadir un marcador propio (la última usada)
 const placed = [];          // edificios marcados en esta sesión, para «Deshacer»
 const undoStack = [];
 
 /* ---------------- Arranque ---------------- */
 async function boot() {
-  const [mapCfg, catCfg, mk] = await Promise.all([getJSON('data/map.json'), getJSON('data/categories.json'), getJSON('data/markers.json')]);
+  const [mapCfg, catCfg, mk, chk] = await Promise.all(['map', 'categories', 'markers', 'checklist'].map((n) => getJSON(`data/${n}.json`)));
+  checklist = chk;
+  reqs = chk.sections.flatMap((s) => s.items);
   groups = catCfg.groups; cats = catCfg.categories; catById = new Map(cats.map((c) => [c.id, c]));
   dataMarkers = (mk.markers || []).filter((m) => catById.has(m.cat));
   dataMeta = { source: mk.source, updated: mk.updated };
@@ -58,13 +64,14 @@ async function boot() {
 function setupMap() {
   space = makeSpace(base.width, base.height);
   map = L.map('map', {
-    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + 2, zoomSnap: 0.5, zoomDelta: 0.5,
+    crs: L.CRS.Simple, minZoom: 0, maxZoom: space.Z + OVERZOOM, zoomSnap: 0.5, zoomDelta: 0.5,
     wheelPxPerZoomLevel: 90, zoomControl: false, maxBoundsViscosity: 0.9, attributionControl: !!base.attribution,
   });
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+  if (map.attributionControl) map.attributionControl.setPosition('topright').setPrefix('Leaflet');   // abajo lo tapa la barra de herramientas
 
   if (base.type === 'tiles') {
-    L.tileLayer(base.url, { tileSize: 256, minNativeZoom: 0, maxNativeZoom: space.Z, maxZoom: space.Z + 2, bounds: space.bounds, noWrap: true, attribution: base.attribution || '' }).addTo(map);
+    L.tileLayer(base.url, { tileSize: 256, minNativeZoom: 0, maxNativeZoom: space.Z, maxZoom: space.Z + OVERZOOM, bounds: space.bounds, noWrap: true, attribution: base.attribution || '' }).addTo(map);
   } else if (base.type === 'image') {
     L.imageOverlay(base.url, space.bounds, { attribution: base.attribution || '' }).addTo(map);
   } else {
@@ -79,6 +86,7 @@ function setupMap() {
   map.setMaxBounds(space.bounds.pad(0.3));
   map.fitBounds(space.bounds);
   map.on('click', onMapClick);
+  window.leonida = { map, space };   // para depurar y para las pruebas con Playwright
 }
 
 function loadGrid() {
@@ -116,7 +124,7 @@ function render() {
   markerIndex = new Map(allMarkers().map((m) => [m.id, m]));
   missed = computeMissed();
   missedIds = new Set(missed.map((x) => x.m.id));
-  renderPins(); renderProgress(); renderCats(); renderMissed(); renderData(); renderControls(); renderDetail();
+  renderPins(); renderProgress(); renderCats(); renderChecklist(); renderMissed(); renderData(); renderControls(); renderDetail();
 }
 
 function renderPins() {
@@ -144,13 +152,34 @@ function renderPins() {
   if (p.showVisited) visitedOverlay.addTo(map); else visitedOverlay.remove();
 }
 
+const reqValue = (r) => Math.max(0, Number(state.checklist[r.id]) || 0);
+const reqDone = (r) => reqValue(r) >= r.need;
+
+// El progreso de cabecera es el de los requisitos del 100% (media de lo avanzado en cada uno): es una
+// aproximación, el juego no publica cuánto pesa cada requisito.
 function renderProgress() {
-  const tracked = allMarkers().filter(isTracked);
-  const done = tracked.filter((m) => state.found[m.id]).length;
-  const pct = tracked.length ? (done / tracked.length) * 100 : 0;
-  $('#progText').textContent = tracked.length ? `${done} de ${tracked.length} conseguidos` : 'Aún no hay marcadores cargados';
-  $('#progPct').textContent = tracked.length ? `${pct.toFixed(pct < 10 ? 1 : 0)}%` : '';
+  const done = reqs.filter(reqDone).length;
+  const pct = reqs.length ? (reqs.reduce((a, r) => a + Math.min(1, reqValue(r) / r.need), 0) / reqs.length) * 100 : 0;
+  $('#progText').textContent = `${done} de ${reqs.length} requisitos del 100%`;
+  $('#progPct').textContent = `≈ ${pct.toFixed(pct > 0 && pct < 10 ? 1 : 0)}%`;
   $('#progBar').style.width = pct + '%';
+}
+
+function renderChecklist() {
+  const el = $('#checkList');
+  if (el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return; // no pisar mientras se escribe
+  el.innerHTML = checklist.sections.map((s) =>
+    `<div class="group-h"><span>${esc(s.name)}</span><span class="sec-count">${s.items.filter(reqDone).length}/${s.items.length}</span></div>` +
+    s.items.map((r) => {
+      const v = reqValue(r), done = v >= r.need;
+      const goal = r.unit === '$' ? money(r.need) : r.total && r.total !== r.need ? `${r.need} de ${r.total}` : r.need > 1 ? `${r.need}${r.total ? ' (todos)' : ''}` : '';
+      const sub = [goal, r.note].filter(Boolean).join(' · ');
+      return `<div class="req${done ? ' done' : ''}"><button class="req-check" data-req-toggle="${esc(r.id)}" aria-label="Marcar como hecho">${done ? '✓' : ''}</button>` +
+        `<div class="req-body"><b>${esc(r.name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div>` +
+        (r.need > 1 ? `<input type="number" inputmode="numeric" min="0" data-req="${esc(r.id)}" value="${v || ''}" placeholder="0" aria-label="Cuánto llevas">` : '') + '</div>';
+    }).join('')).join('');
+  $('#checkSource').innerHTML = checklist.source
+    ? `Fuente: <a href="${esc(checklist.sourceUrl)}" target="_blank" rel="noopener">${esc(checklist.source)}</a> (${esc(checklist.updated)}).` : '';
 }
 
 function renderCats() {
@@ -227,7 +256,7 @@ function renderDetail() {
   if (selected.kind === 'new') {
     html = `<div class="d-head"><i style="background:#fff">➕</i>Nuevo marcador${close}</div>
       <h2>Añadir marcador propio</h2>
-      <select id="nCat">${catOptions(selected.cat || 'collectible')}</select>
+      <select id="nCat">${catOptions(selected.cat || lastCat)}</select>
       <input type="text" id="nTitle" placeholder="Nombre (p. ej. «Caja fuerte en el motel»)" maxlength="80">
       <textarea id="nDesc" placeholder="Notas: cómo llegar, qué hay…"></textarea>
       <div class="d-foot"><button class="btn ghost" data-act="close">Cancelar</button><button class="btn primary" data-act="create">Guardar</button></div>`;
@@ -272,7 +301,7 @@ function onDetailClick(e) {
   if (act === 'create') {
     const title = $('#nTitle').value.trim(), cat = $('#nCat').value;
     const m = { id: uid('c'), custom: true, cat, x: selected.x, y: selected.y, title: title || catById.get(cat).name, desc: $('#nDesc').value.trim() };
-    state.custom.push(m);
+    state.custom.push(m); lastCat = cat;
     if (state.hidden.includes(cat)) state.hidden = state.hidden.filter((c) => c !== cat);
     state.prefs.mode = 'all';
     selected = { kind: 'marker', id: m.id };
@@ -458,6 +487,20 @@ function bindUI() {
     box.innerHTML = res.length ? res.map((m) => itemRow(m, catById.get(m.cat).name + (state.found[m.id] ? ' · conseguido' : ''))).join('') : '<div class="empty">Sin resultados</div>';
   });
   for (const id of ['#searchResults', '#missedList']) $(id).addEventListener('click', (e) => { const b = e.target.closest('[data-goto]'); if (b) goTo(b.dataset.goto); });
+
+  $('#checkList').addEventListener('click', (e) => {
+    const id = e.target.closest('[data-req-toggle]')?.dataset.reqToggle;
+    const r = reqs.find((x) => x.id === id); if (!r) return;
+    if (reqDone(r)) delete state.checklist[id]; else state.checklist[id] = r.need;
+    change('checklist');
+  });
+  $('#checkList').addEventListener('change', (e) => {
+    const id = e.target.dataset.req; if (!id) return;
+    const v = Math.max(0, Math.floor(Number(e.target.value) || 0));
+    if (v) state.checklist[id] = v; else delete state.checklist[id];
+    e.target.blur();
+    change('checklist');
+  });
 
   $('#detail').addEventListener('click', onDetailClick);
   $('#detail').addEventListener('input', onDetailInput);

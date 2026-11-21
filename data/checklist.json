@@ -1,0 +1,61 @@
+{
+  "_doc": "Requisitos del 100% tal como los lista el juego (Progreso > Estadísticas > 100%, visible tras acabar la historia). need = lo que hace falta, total = lo que existe (null si no se conoce), unit '$' = dinero. Los nombres en español son traducción propia: el nombre oficial en inglés va entre paréntesis.",
+  "source": "PowerPyx — GTA 6 100% Completion Checklist & Guide",
+  "sourceUrl": "https://www.powerpyx.com/gta-6-100-completion-checklist/",
+  "updated": "2026-11-18",
+  "sections": [
+    {
+      "id": "story",
+      "name": "Historia y golpes",
+      "items": [
+        { "id": "story", "name": "Historia completada", "need": 1, "total": 1 },
+        { "id": "optional", "name": "Tareas opcionales", "need": 100, "total": null, "note": "Hay muchas más de 100. Cada meditación, entrega de vehículo o encargo de desconocido cuenta." },
+        { "id": "gangops", "name": "Operaciones de bandas (Gang Operations)", "need": 39, "total": 39, "note": "Hay que saquear todos los objetos de valor clave de cada una." },
+        { "id": "banks", "name": "Bancos (Bank Jobs)", "need": 22, "total": 22, "note": "Caja registradora y caja fuerte; en los grandes, también la cámara." },
+        { "id": "payday", "name": "Prestamistas (Payday Loans)", "need": 7, "total": 7, "note": "Mostrador y caja fuerte de la trastienda." },
+        { "id": "smash", "name": "Smash 'N' Grabs (casas de empeño y joyerías)", "need": 34, "total": 35, "note": "Incluye la caja fuerte de la trastienda." },
+        { "id": "stickups", "name": "Atracos a tiendas (Stick Ups)", "need": 50, "total": 91 },
+        { "id": "fence-narcotics", "name": "Narcóticos vendidos a un perista", "need": 100000, "total": null, "unit": "$" },
+        { "id": "fence-jewelry", "name": "Joyas vendidas a un perista", "need": 100000, "total": null, "unit": "$" },
+        { "id": "fence-bills", "name": "Billetes marcados vendidos a un perista", "need": 250000, "total": null, "unit": "$" },
+        { "id": "vaults", "name": "Cámaras acorazadas (Vaults)", "need": 8, "total": 8, "note": "Las de los 8 bancos grandes." },
+        { "id": "fence-vehicles", "name": "Vehículos vendidos", "need": 200000, "total": null, "unit": "$" }
+      ]
+    },
+    {
+      "id": "explore",
+      "name": "Exploración y actividades",
+      "items": [
+        { "id": "kenton", "name": "Sets de Kenton (tesoros submarinos)", "need": 5, "total": 7 },
+        { "id": "cards", "name": "Sets de cartas coleccionables", "need": 15, "total": 18, "note": "480 cartas en total, de 18 a 36 por set." },
+        { "id": "waink", "name": "Lugares escaneados con WAiNK", "need": 100, "total": null },
+        { "id": "underwater", "name": "Descubrimientos submarinos", "need": 33, "total": 33, "note": "Necesitas los 7 sets de Kenton para tenerlos todos." },
+        { "id": "magazines", "name": "Revistas, libros y cómics", "need": 30, "total": 34, "note": "27 revistas/libros/cómics más 7 intercambios de libros." },
+        { "id": "meditation", "name": "Puntos de meditación", "need": 15, "total": 18, "note": "10 lugares; cuenta doble si meditas con Jason y con Lucía." },
+        { "id": "flamingos", "name": "Flamencos de cocaína destruidos", "need": 100, "total": 125, "note": "Los de pico blanco y negro; los de pico amarillo son decoración." },
+        { "id": "playlists", "name": "Playlists únicas", "need": 2, "total": 2 },
+        { "id": "styles", "name": "Estilos descubiertos", "need": 70, "total": 79, "note": "Tatuajes de revista (13 de Jason, 15 de Lucía, 17 comunes) y 34 relojes de lujo." },
+        { "id": "races", "name": "Carreras únicas ganadas", "need": 30, "total": 40 },
+        { "id": "race-gold", "name": "Oros en desafíos de carrera", "need": 10, "total": 13 },
+        { "id": "shooting", "name": "Oros en campos de tiro", "need": 42, "total": 42 },
+        { "id": "videogames", "name": "Videojuegos jugados", "need": 4, "total": 4, "note": "Basta con empezarlos. Tres en la tele de casa y uno en recreativas." },
+        { "id": "pool", "name": "Rivales de billar derrotados", "need": 5, "total": 7 },
+        { "id": "minigolf", "name": "Minigolfs jugados", "need": 2, "total": 3 },
+        { "id": "hoops", "name": "Canastas de baloncesto", "need": 90, "total": 100, "note": "Una canasta en cada sitio distinto." },
+        { "id": "drones", "name": "Contrarrelojes de dron", "need": 42, "total": 42, "note": "14 lugares con 3 pruebas cada uno." },
+        { "id": "stunts", "name": "Acrobacias", "need": 300, "total": 397, "note": "130 saltos, 202 bajo puentes, 40 vuelos en cuchillo y 25 saltos base; valen de cualquier tipo." },
+        { "id": "challenges", "name": "Desafíos", "need": 70, "total": 80 },
+        { "id": "bret", "name": "Target Decks de Bret (caza)", "need": 15, "total": 15, "note": "Solo con Jason." }
+      ]
+    },
+    {
+      "id": "discovery",
+      "name": "Descubrimiento",
+      "items": [
+        { "id": "vehicles", "name": "Vehículos de serie escaneados", "need": 200, "total": 277, "note": "Los 280 vehículos destacados (Standout) no cuentan." },
+        { "id": "weapons", "name": "Armas estándar conseguidas", "need": 50, "total": 66, "note": "53 de fuego, 9 cuerpo a cuerpo y 4 explosivos." },
+        { "id": "animals", "name": "Animales estudiados", "need": 100, "total": 255, "note": "Con los prismáticos; no hace falta cazarlos." }
+      ]
+    }
+  ]
+}

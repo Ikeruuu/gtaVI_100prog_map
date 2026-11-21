@@ -1,38 +1,57 @@
 {
-  "_doc": "Taxonomía genérica (no son los nombres oficiales del juego). Al importar datos reales se añaden/renombran categorías aquí. tracked=false => no cuenta para el progreso.",
+  "_doc": "Categorías de marcadores. Los tipos del juego salen de la lista del 100% (ver data/checklist.json); los nombres en español son traducción propia, con el nombre oficial en inglés entre paréntesis. tracked=false => no cuenta para el progreso ni para «Olvidos».",
   "groups": [
+    { "id": "own", "name": "Lo que encuentro yo" },
+    { "id": "robberies", "name": "Robos" },
     { "id": "collect", "name": "Coleccionables" },
-    { "id": "vehicles", "name": "Vehículos" },
-    { "id": "weapons", "name": "Armas y equipo" },
-    { "id": "loot", "name": "Robos y botín" },
-    { "id": "events", "name": "Eventos y secretos" },
     { "id": "activities", "name": "Actividades" },
-    { "id": "places", "name": "Lugares" }
+    { "id": "stunts", "name": "Acrobacias" },
+    { "id": "world", "name": "Mundo" }
   ],
   "categories": [
-    { "id": "collectible", "group": "collect", "name": "Coleccionable", "icon": "⭐", "color": "#ffd23f" },
+    { "id": "lootitem", "group": "own", "name": "Botín / objeto robable", "icon": "💰", "color": "#7ae582" },
+    { "id": "safe", "group": "own", "name": "Caja fuerte", "icon": "🔐", "color": "#c8b6ff" },
+    { "id": "interior", "group": "own", "name": "Interior accesible", "icon": "🚪", "color": "#e0aaff", "tracked": false },
+    { "id": "random", "group": "own", "name": "Evento aleatorio", "icon": "❗", "color": "#ff4fa3" },
+    { "id": "secret", "group": "own", "name": "Secreto / easter egg", "icon": "👽", "color": "#80ffdb" },
+    { "id": "poi", "group": "own", "name": "Punto de interés", "icon": "📍", "color": "#ced4da", "tracked": false },
 
-    { "id": "vehicle", "group": "vehicles", "name": "Vehículo especial", "icon": "🚗", "color": "#4cc9f0" },
+    { "id": "gangop", "group": "robberies", "name": "Operación de banda (Gang Operation)", "icon": "💀", "color": "#ffd23f" },
+    { "id": "bank", "group": "robberies", "name": "Banco (Bank Job)", "icon": "🏦", "color": "#52b788" },
+    { "id": "vault", "group": "robberies", "name": "Cámara acorazada (Vault)", "icon": "🛅", "color": "#2d6a4f" },
+    { "id": "payday", "group": "robberies", "name": "Prestamista (Payday Loan)", "icon": "🤝", "color": "#95d5b2" },
+    { "id": "smash", "group": "robberies", "name": "Smash 'N' Grab (empeños / joyería)", "icon": "💎", "color": "#4cc9f0" },
+    { "id": "stickup", "group": "robberies", "name": "Atraco a tienda (Stick Up)", "icon": "🏪", "color": "#ff9f1c" },
 
-    { "id": "weapon", "group": "weapons", "name": "Arma", "icon": "🔫", "color": "#ff6b6b" },
-    { "id": "pickup", "group": "weapons", "name": "Chaleco / salud", "icon": "🛡️", "color": "#9bb1ff" },
+    { "id": "card", "group": "collect", "name": "Carta coleccionable", "icon": "🃏", "color": "#f1faee" },
+    { "id": "waink", "group": "collect", "name": "Lugar WAiNK", "icon": "📱", "color": "#b388eb" },
+    { "id": "underwater", "group": "collect", "name": "Descubrimiento submarino", "icon": "⚓", "color": "#48cae4" },
+    { "id": "magazine", "group": "collect", "name": "Revista, libro o cómic", "icon": "📖", "color": "#e9c46a" },
+    { "id": "bookswap", "group": "collect", "name": "Intercambio de libros (Book Swap)", "icon": "📚", "color": "#d4a373" },
+    { "id": "meditation", "group": "collect", "name": "Punto de meditación", "icon": "🧘", "color": "#cdb4db" },
+    { "id": "flamingo", "group": "collect", "name": "Flamenco de cocaína", "icon": "🦩", "color": "#ff8fab" },
+    { "id": "playlist", "group": "collect", "name": "Playlist única", "icon": "🎵", "color": "#a0c4ff" },
+    { "id": "watch", "group": "collect", "name": "Reloj de lujo", "icon": "⌚", "color": "#ffd166" },
+    { "id": "tattoo", "group": "collect", "name": "Revista de tatuajes", "icon": "🖋️", "color": "#adb5bd" },
 
-    { "id": "store", "group": "loot", "name": "Tienda robable", "icon": "🏪", "color": "#ff9f1c" },
-    { "id": "lootitem", "group": "loot", "name": "Botín / objeto robable", "icon": "💰", "color": "#7ae582" },
-    { "id": "safe", "group": "loot", "name": "Caja fuerte", "icon": "🔐", "color": "#c8b6ff" },
-    { "id": "interior", "group": "loot", "name": "Interior accesible", "icon": "🚪", "color": "#e0aaff", "tracked": false },
-
-    { "id": "random", "group": "events", "name": "Evento aleatorio", "icon": "❗", "color": "#ff4fa3" },
-    { "id": "secret", "group": "events", "name": "Secreto / easter egg", "icon": "👽", "color": "#80ffdb" },
-    { "id": "stranger", "group": "events", "name": "Encuentro / desconocido", "icon": "❓", "color": "#b388eb" },
-
-    { "id": "mission", "group": "activities", "name": "Misión secundaria", "icon": "📋", "color": "#f4a261" },
     { "id": "race", "group": "activities", "name": "Carrera", "icon": "🏁", "color": "#e9ecef" },
-    { "id": "stunt", "group": "activities", "name": "Salto acrobático", "icon": "🤸", "color": "#f72585" },
-    { "id": "activity", "group": "activities", "name": "Actividad / minijuego", "icon": "🎯", "color": "#90e0ef" },
+    { "id": "racechallenge", "group": "activities", "name": "Desafío de carrera", "icon": "⏱️", "color": "#dee2e6" },
+    { "id": "shooting", "group": "activities", "name": "Campo de tiro", "icon": "🎯", "color": "#ff6b6b" },
+    { "id": "drone", "group": "activities", "name": "Carreras de dron", "icon": "🛸", "color": "#90e0ef" },
+    { "id": "hoop", "group": "activities", "name": "Canasta de baloncesto", "icon": "🏀", "color": "#f4a261" },
+    { "id": "pool", "group": "activities", "name": "Rival de billar", "icon": "🎱", "color": "#6c757d" },
+    { "id": "minigolf", "group": "activities", "name": "Minigolf", "icon": "⛳", "color": "#74c69d" },
+    { "id": "arcade", "group": "activities", "name": "Videojuego / recreativa", "icon": "🕹️", "color": "#f72585" },
+    { "id": "mission", "group": "activities", "name": "Misión opcional / desconocido", "icon": "❓", "color": "#9d4edd" },
 
-    { "id": "shop", "group": "places", "name": "Tienda / servicio", "icon": "🛒", "color": "#adb5bd", "tracked": false },
-    { "id": "property", "group": "places", "name": "Propiedad / piso franco", "icon": "🏠", "color": "#52b788", "tracked": false },
-    { "id": "poi", "group": "places", "name": "Punto de interés", "icon": "📍", "color": "#ced4da", "tracked": false }
+    { "id": "stuntjump", "group": "stunts", "name": "Salto acrobático (Stunt Jump)", "icon": "🛞", "color": "#fb8500" },
+    { "id": "bridge", "group": "stunts", "name": "Bajo el puente (Under the Bridge)", "icon": "🌉", "color": "#8ecae6" },
+    { "id": "knife", "group": "stunts", "name": "Vuelo en cuchillo (Knife Flight)", "icon": "✈️", "color": "#219ebc" },
+    { "id": "basejump", "group": "stunts", "name": "Salto base (Base Jump)", "icon": "🪂", "color": "#ffb703" },
+
+    { "id": "standout", "group": "world", "name": "Vehículo destacado (Standout)", "icon": "🚗", "color": "#4cc9f0", "tracked": false },
+    { "id": "ammu", "group": "world", "name": "Ammu-Nation", "icon": "🔫", "color": "#e63946", "tracked": false },
+    { "id": "fence", "group": "world", "name": "Perista", "icon": "💵", "color": "#80b918", "tracked": false },
+    { "id": "property", "group": "world", "name": "Propiedad / piso franco", "icon": "🏠", "color": "#52b788", "tracked": false }
   ]
 }
