@@ -159,6 +159,9 @@ simulado (Playwright interceptando `api.github.com`).
 - `window.leonida = { map, space, fp }` está expuesto para depurar y para Playwright
   (`map.setView(space.toLL(x, y), zoom)`).
 
+`CONTINUAR.md` es el relevo en lenguaje llano para el usuario (escrito el 24-nov-2026, cuando iba a pasar de
+Max a Pro y quería seguir con el Claude conversacional). Mantenerlo al día si cambia algo importante.
+
 ## Pendiente
 
 1. **Offline:** el mapa base necesita conexión (teselas remotas, sin caché propia).
